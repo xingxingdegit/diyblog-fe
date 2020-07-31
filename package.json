@@ -1,5 +1,5 @@
 {
-  "name": "diyblog-fe-v5",
+  "name": "diyblog-fe",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,11 +8,16 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
+    "view-design": "^4.0.0",
     "vue": "^2.6.11"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.4.0",
     "@vue/cli-service": "~4.4.0",
+    "axios": "^0.18.0",
+    "babel-plugin-import": "^1.8.0",
+    "vue-cli-plugin-axios": "0.0.4",
+    "vue-cli-plugin-iview": "~2.0.0",
     "vue-template-compiler": "^2.6.11"
   },
   "browserslist": [
