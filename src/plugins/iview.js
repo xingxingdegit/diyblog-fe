@@ -18,7 +18,7 @@ import { Header } from 'view-design'
 import { Content } from 'view-design'
 import { Footer } from 'view-design'
 
-import { Breadcrumb } from 'view-design'
+import { Input } from 'view-design'
 
 
 Vue.component('Button', Button)
@@ -39,5 +39,8 @@ Vue.component('Layout', Layout)
 Vue.component('Header', Header)
 Vue.component('Content', Content)
 Vue.component('Footer', Footer)
+
+Vue.component('Input', Input)
+
 
 import 'view-design/dist/styles/iview.css'

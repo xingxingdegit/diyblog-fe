@@ -5,7 +5,7 @@
         <Menu mode="horizontal" @on-select="menu_decide" theme="dark" active-name="1">
           <div class="layout-logo">Dashboard</div>
           <div class="layout-nav">
-            <MenuItem name="dashboard">
+            <MenuItem name="Dashboard">
                 <Icon type="md-speedometer" />
                 仪表盘
             </MenuItem>
@@ -14,8 +14,8 @@
                     <Icon type="ios-create" />
                     文章
                 </template>
-                <MenuItem name="posts_show">写文章</MenuItem>
-                <MenuItem name="posts_create">所有文章</MenuItem>
+                <MenuItem name="PostCreate">写文章</MenuItem>
+                <MenuItem name="PostShow">所有文章</MenuItem>
             </Submenu>
             <Submenu name="class">
                 <template slot="title">
@@ -25,40 +25,48 @@
                 <MenuItem name="class">分类</MenuItem>
                 <MenuItem name="tags">标签</MenuItem>
             </Submenu>
-            <MenuItem name="setting">
+            <MenuItem name="Setting">
                 <Icon type="ios-construct" />
                 综合设置
             </MenuItem>
           </div>
         </Menu>
       </Header>
-      <Content :style="{margin: '88px 20px 0', background: '#fff', minHeight: '500px'}">
-        Content
-        <component v-bind:is="currentComponent" />
+      <Content :style="{margin: '88px 20px 0', background: '#f7f7f7', minHeight: '500px'}">
+        <component id="content" v-bind:is="currentComponent" />
       </Content>
-      <Footer class="layout-footer-center">2011-2016 &copy; TalkingData</Footer>
+      <Footer class="layout-footer-center">
+        Hello World
+      </Footer>
     </Layout>
   </div>
 </template>
 
 <script>
 import Dashboard from './components/Dashboard.vue'
+import PostCreate from './components/PostCreate.vue'
+
 export default {
   name: 'app',
   data () {
     return {
-      currentComponent: 'Dashboard',
-      theme1: 'dark'
+      currentComponent: '',
     }
   },
   components: {
     Dashboard,
+    PostCreate,
+  },
+  created: function () {
+    var component = document.location.hash || '#Dashboard'
+    this.currentComponent = component.slice(1)
   },
   methods: {
     menu_decide: function(menuName) {
       console.log(menuName)
       this.currentComponent = menuName
-    }
+      document.location.hash = menuName
+    },
   }
 }
 </script>
@@ -83,7 +91,7 @@ export default {
         left: 20px;
     }
     .layout-nav{
-        width: 420px;
+        width: 600px;
         margin: 0 auto;
     }
     .layout-footer-center{
