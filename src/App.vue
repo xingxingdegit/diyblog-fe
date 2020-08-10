@@ -93,6 +93,7 @@ export default {
     .layout-nav{
         width: 600px;
         margin: 0 auto;
+        z-index: 100;
     }
     .layout-footer-center{
         text-align: center;

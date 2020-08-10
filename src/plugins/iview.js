@@ -19,6 +19,8 @@ import { Content } from 'view-design'
 import { Footer } from 'view-design'
 
 import { Input } from 'view-design'
+import { Select } from 'view-design'
+import { Option } from 'view-design'
 
 
 Vue.component('Button', Button)
@@ -41,6 +43,8 @@ Vue.component('Content', Content)
 Vue.component('Footer', Footer)
 
 Vue.component('Input', Input)
+Vue.component('Select', Select)
+Vue.component('Option', Option)
 
 
 import 'view-design/dist/styles/iview.css'
