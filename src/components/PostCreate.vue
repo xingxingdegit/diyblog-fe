@@ -17,13 +17,15 @@
     </section>
     <footer id="post_op">
       <Button type="info" class="post_button" @click="printContent()">发布</Button>
-      <Button type="success" class="post_button" @click="printTitle()">保存草稿</Button>
+      <Button type="success" class="post_button" @click="save_post()">保存草稿</Button>
     </footer>
 
   </div>
 </template>
 
 <script>
+
+import crypto from 'crypto'
 
 export default {
   name: 'post-create',
@@ -154,6 +156,42 @@ export default {
     },
     printContent() {
       console.log(this.post_content)
+    },
+    get_hash(string) {
+      var url = document.location.host
+      var time_key = Math.floor(Date.now() / 100000)
+      var hmac = crypto.createHmac('sha256', url + '_' + String(time_key)); 
+      hmac.update(string)
+      var hash = hmac.digest('hex')
+//      var hash = hmac.digest('base64')
+      return hash
+    },
+    hash_cookie() {
+      var cookie = document.cookie.split(';')
+      var cookie_list = new Array()
+      for (var i=0; i < cookie.length; i++) {
+        var cookie_simple = cookie[i].trim().split('=')
+        if (cookie_simple[0] == 'hash') {
+          continue
+        }
+        cookie_list.push(cookie_simple[1])
+      }
+      var cookie_str = cookie_list.sort().join('_')
+      var cookie_hash = this.get_hash(cookie_str)
+      document.cookie = 'hash=' + cookie_hash
+    },
+    save_post() {
+      var data = {title: this.post_title, content: this.post_content}
+      var form_string = [data.title, data.content].sort().join('_')
+      data.hash = this.get_hash(form_string)
+      this.hash_cookie()
+      this.axios.post('/admin/manager/post/save', data)
+      .then(response => {
+        console.log(response)
+      })
+      .catch(error => {
+        console.log(error)
+      })
     },
     printTitle() {
       console.log(this.post_title)
