@@ -13,7 +13,7 @@ module.exports = {
       }),
     ],
   },
-  publicPath: './',
+  publicPath: '/admin/manager',
   devServer: {
     host: '0.0.0.0',
     port: '8080',
@@ -21,7 +21,13 @@ module.exports = {
       "/admin": {
           target: "http://127.0.0.1:5000",
       },
-      "/static": {
+      "/static/js": {
+          target: "http://127.0.0.1:5000",
+      },
+      "/static/css": {
+          target: "http://127.0.0.1:5000",
+      },
+      "/static/image": {
           target: "http://127.0.0.1:5000",
       },
     },

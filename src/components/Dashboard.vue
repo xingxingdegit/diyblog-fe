@@ -24,7 +24,7 @@ export default {
   },
   methods: {
     get_key: function() {
-      this.axios.get('/admin/manager/getkey')
+      this.axios.get('getkey')
         .then(response => {
           this.login_key = response.data.data
         })

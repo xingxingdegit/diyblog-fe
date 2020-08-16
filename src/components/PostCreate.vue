@@ -33,32 +33,34 @@ export default {
     return {
       login_key: '',
       post_title: '',
+      post_title_exist: false,
       post_content: '',
+      post_id: 0,
       code_style: 'github',
       externalLink: {
         markdown_css: function() {
           // 这是你的markdown css文件路径
-          return './markdown/github-markdown.min.css';
+          return '/static/markdown/github-markdown.min.css';
         },
         hljs_js: function() {
           // 这是你的hljs文件路径
-          return './highlightjs/highlight.min.js';
+          return '/static/highlightjs/highlight.min.js';
         },
         hljs_css: function(css) {
           // 这是你的代码高亮配色文件路径
-          return './highlightjs/styles/' + css + '.min.css';
+          return '/static/highlightjs/styles/' + css + '.min.css';
         },
         hljs_lang: function(lang) {
           // 这是你的代码高亮语言解析路径
-          return './highlightjs/languages/' + lang + '.min.js';
+          return '/static/highlightjs/languages/' + lang + '.min.js';
         },
         katex_css: function() {
           // 这是你的katex配色方案路径路径
-          return './katex/katex.min.css';
+          return '/static/katex/katex.min.css';
         },
         katex_js: function() {
           // 这是你的katex.js路径
-          return './katex/katex.min.js';
+          return '/static/katex/katex.min.js';
         },
       },
       style_list: [
@@ -145,8 +147,24 @@ export default {
     }
   },
   methods: {
-    check_title: function() {
-      this.axios.get('/admin/manager/getkey')
+    get_args() {
+      var args = document.location.search
+      var args_obj = new Object()
+      if (args) {
+        args = args.slice(1).split('&')
+        for (var i=0;i<args.length;i++) {
+          var key_value = args[i].split('=')
+          args_obj[key_value[0]] = key_value[1]
+        }
+        return args_obj
+      } else {
+        return False
+      }
+    },
+    get_post() {
+    },
+    check_title() {
+      this.axios.get('getkey')
         .then(response => {
           this.login_key = response.data.data
         })
@@ -181,6 +199,7 @@ export default {
       document.cookie = 'hash=' + cookie_hash
     },
     save_post() {
+      console.log(this.get_args())
       var data = {title: this.post_title, content: this.post_content}
       var form_string = [data.title, data.content].sort().join('_')
       data.hash = this.get_hash(form_string)
