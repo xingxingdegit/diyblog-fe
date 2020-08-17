@@ -22,6 +22,7 @@ import { Input } from 'view-design'
 import { Select } from 'view-design'
 import { Option } from 'view-design'
 
+import { Message } from 'view-design'
 
 Vue.component('Button', Button)
 Vue.component('Icon', Icon)
@@ -45,5 +46,7 @@ Vue.component('Footer', Footer)
 Vue.component('Input', Input)
 Vue.component('Select', Select)
 Vue.component('Option', Option)
+
+Vue.prototype.$Message = Message
 
 import 'view-design/dist/styles/iview.css'

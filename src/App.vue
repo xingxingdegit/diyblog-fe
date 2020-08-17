@@ -1,7 +1,7 @@
 <template>
   <div class="layout">
     <Layout>
-      <Header :style="{position: 'fixed', width: '100%'}">
+      <Header :style="{position: 'static', width: '100%'}" style="z-index: 1000;">
         <Menu mode="horizontal" @on-select="menu_decide" theme="dark" active-name="1">
           <div class="layout-logo">Dashboard</div>
           <div class="layout-nav">
@@ -32,7 +32,7 @@
           </div>
         </Menu>
       </Header>
-      <Content :style="{margin: '88px 20px 0', background: '#f7f7f7', minHeight: '500px'}">
+      <Content :style="{background: '#f7f7f7', minHeight: '500px'}">
         <component id="content" v-bind:is="currentComponent" />
       </Content>
       <Footer class="layout-footer-center">
@@ -93,7 +93,6 @@ export default {
     .layout-nav{
         width: 600px;
         margin: 0 auto;
-        z-index: 100;
     }
     .layout-footer-center{
         text-align: center;

@@ -1,11 +1,15 @@
 <template>
   <div id="post_create">
-    <header>
+    <header style="z-index:2000">
       <Input id="title" v-model="post_title" placeholder="标题" style="width: 30%" />
-      <Select v-model="code_style" style="width:200px">
-          <Option v-for="(style, index) in style_list" :value="style" :key="index">{{ style }}</Option>
+      代码样式:
+      <Select v-model="code_style" style="width:15%">
+          <Option v-for="(style, index) in style_list" 
+            :value="style" 
+            :key="index">
+              {{ style }}
+          </Option>
       </Select>
-      <Input :value="code_style" placeholder="test" style="width: 30%" />
     </header>
     <section>
       <mavon-editor 
@@ -258,7 +262,7 @@ export default {
           this.$Message['warning']({
             background: true,
             content: '保存失败',
-            duration: 5,
+            duration: 50,
             closable: true,
           })
         }
@@ -281,6 +285,15 @@ export default {
 </script>
 
 <style scoped>
+  /*提示信息的z-index是1016*/
+  /*编辑框*/
+  .v-note-wrapper {
+    z-index: 500;
+  }
+  /*下拉菜单*/
+  .ivu-select-dropdown {
+    z-index: 800;
+  }
   #title {
     margin-top: 30px;
     margin-bottom: 30px;
@@ -293,11 +306,5 @@ export default {
   }
   button {
     margin: 20px;
-  }
-  header {
-    z-index: 100;
-  }
-  section {
-    z-index: 10;
   }
 </style>
