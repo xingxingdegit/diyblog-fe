@@ -1,7 +1,7 @@
 <template>
   <div id="post_create">
-    <header style="z-index:2000">
-      <Input id="title" v-model="post_title" placeholder="标题" style="width: 30%" />
+    <header>
+      <Input element-id="post_title" id="title" v-model="post_title" placeholder="标题" style="width: 30%" />
       代码样式:
       <Select v-model="code_style" style="width:15%">
           <Option v-for="(style, index) in style_list" 
@@ -35,11 +35,12 @@ export default {
   name: 'post-create',
   data () {
     return {
-      login_key: '',
-      post_title: '',
-      post_title_exist: false,
-      post_content: '',
-      post_id: 0,
+      post_title: '',     //上传的文档标题
+      post_content: '',   //文档内容
+      post_id: 0,         //如果是从编辑界面过来的， 函数会为这个填入文档id
+      post_url: '',
+      edit_title: '',    //如果是编辑界面过来的，会存在里面，title与这个一样就不会去检查是否存
+      edit_url: '',      // 跟edit_title一样,   这俩也是为了防止保存完以后，修改了，然后又改回来了。
       code_style: 'github',
       externalLink: {
         markdown_css: function() {
@@ -150,10 +151,47 @@ export default {
       ],
     }
   },
+  watch: {
+    // 监控标题与url的变化，提示是否已经存在
+    post_title: function() {
+      if (this.post_title != this.edit_title) {
+        this.check_title()
+      }
+    },
+    post_url: function() {
+      if (this.post_url != this.edit_url) {
+        this.check_url()
+      }
+    }
+  },
   created: function() {
     this.get_post()
   },
   methods: {
+    simple_check() {
+      // 在提交之前做的检测
+      var check = new Array()
+      if (! this.post_title) {
+        check.push('标题')
+      }
+      /*
+
+      some check
+
+      */
+      if (check.length == 0) {
+        return true
+      } else {
+        this.$Message.info({
+          background: true,
+          content: check.join(', ') + '  不能为空',
+          duration: 5,
+          closable: true,
+        })
+        return false
+      }
+
+    },
     get_args() {
       var args = document.location.search
       var args_obj = new Object()
@@ -168,6 +206,7 @@ export default {
         return false
       }
     },
+    // 用于点击编辑跳转过来的，通过id信息获取文档。
     get_post() {
       var id = this.get_args().id
       if (id) {
@@ -178,16 +217,18 @@ export default {
         })
         .then(response => {
           if (response.data.success) {
+            this.edit_title = response.data.data.title
+            this.edit_url = response.data.data.content
             this.post_title = response.data.data.title
             this.post_content = response.data.data.content
             this.$Message.success({
               background: true,
-              content: '文章获取完成'
+              content: '文档获取完成'
             });
           } else {
             this.$Message.warning({
               background: true,
-              content: '文章获取失败',
+              content: '文档获取失败',
               duration: 5,
               closable: true,
             });
@@ -208,13 +249,22 @@ export default {
       }
     },
     check_title() {
-      this.axios.get('getkey')
-        .then(response => {
-          this.login_key = response.data.data
-        })
-        .catch(error => {
-          console.log(error)
-        })
+      this.axios.get('post/check', {
+        params: {
+          title: this.post_title
+        }
+      })
+      .then(response => {
+        var title = document.getElementById('post_title')
+        if (response.data.data.title) {
+          title.style.borderColor = 'red'
+        } else {
+          title.style.borderColor = ''
+        }
+      })
+      .catch(error => {
+        console.log(error)
+      })
     },
     printContent() {
       console.log(this.post_content)
@@ -248,34 +298,40 @@ export default {
 
       data.hash = this.get_hash(form_string)
       this.hash_cookie()
-      console.log(this.$Message)
-      this.axios.post('./post/save', data)
-      .then(response => {
-        if ( response.data.success ) {
-          this.$Message['success']({
-            background: true,
-            content: '保存成功',
-            duration: 5,
-            closable: true,
-          })
-        } else {
-          this.$Message['warning']({
-            background: true,
-            content: '保存失败',
-            duration: 50,
-            closable: true,
-          })
-        }
-      })
-      .catch(error => {
-        console.error(error)
-        this.$Message['error']({
-          background: true,
-          content: '异常错误,请检查网络或后端服务',
-          duration: 8,
-          closable: true,
+      if (this.simple_check()) {
+        this.axios.post('./post/save', data)
+        .then(response => {
+          if ( response.data.success ) {
+            if (response.data.data.id && this.post_id == 0) {
+              this.post_id = response.data.data.id
+            }
+            this.edit_title = this.post_title
+            this.edit_content = this.post_content
+            this.$Message['success']({
+              background: true,
+              content: '保存成功',
+              duration: 5,
+              closable: true,
+            })
+          } else {
+            this.$Message['warning']({
+              background: true,
+              content: '保存失败',
+              duration: 50,
+              closable: true,
+            })
+          }
         })
-      })
+        .catch(error => {
+          console.error(error)
+          this.$Message['error']({
+            background: true,
+            content: '异常错误,请检查网络或后端服务',
+            duration: 8,
+            closable: true,
+          })
+        })
+      }
     },
     printTitle() {
       console.log(this.post_title)
