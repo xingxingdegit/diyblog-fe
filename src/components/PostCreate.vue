@@ -210,17 +210,19 @@ export default {
     get_post() {
       var id = this.get_args().id
       if (id) {
-        this.axios.get('post/get', {
-          params: {
-            id: id
-          }
-        })
+        var data = {id: id}
+        data.hash = this.get_hash(id)
+        this.hash_cookie()
+
+        this.axios.post('post/get', data)
         .then(response => {
           if (response.data.success) {
             this.edit_title = response.data.data.title
-            this.edit_url = response.data.data.content
+            this.edit_url = response.data.data.url
+            this.post_id = id
             this.post_title = response.data.data.title
-            this.post_content = response.data.data.content
+            this.post_content = response.data.data.posts
+            this.code_style = response.data.data.code_style
             this.$Message.success({
               background: true,
               content: '文档获取完成'
@@ -240,7 +242,7 @@ export default {
             this.$Message.error({
               background: true,
               content: '请求异常,请检查网络或后端服务',
-              duration: 5,
+              duration: 10,
               closable: true,
             });
         })
@@ -293,8 +295,9 @@ export default {
       document.cookie = 'hash=' + cookie_hash
     },
     save_post() {
-      var data = {title: this.post_title, content: this.post_content, id: this.post_id}
-      var form_string = [data.title, data.content, data.id].sort().join('_')
+      var data = {title: this.post_title, content: this.post_content, 
+                  id: this.post_id, code_style: this.code_style}
+      var form_string = [data.title, data.content, data.id, data.code_style].sort().join('_')
 
       data.hash = this.get_hash(form_string)
       this.hash_cookie()
