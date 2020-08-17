@@ -40,27 +40,27 @@ export default {
       externalLink: {
         markdown_css: function() {
           // 这是你的markdown css文件路径
-          return '/static/markdown/github-markdown.min.css';
+          return './static/markdown/github-markdown.min.css';
         },
         hljs_js: function() {
           // 这是你的hljs文件路径
-          return '/static/highlightjs/highlight.min.js';
+          return './static/highlightjs/highlight.min.js';
         },
         hljs_css: function(css) {
           // 这是你的代码高亮配色文件路径
-          return '/static/highlightjs/styles/' + css + '.min.css';
+          return './static/highlightjs/styles/' + css + '.min.css';
         },
         hljs_lang: function(lang) {
           // 这是你的代码高亮语言解析路径
-          return '/static/highlightjs/languages/' + lang + '.min.js';
+          return './static/highlightjs/languages/' + lang + '.min.js';
         },
         katex_css: function() {
           // 这是你的katex配色方案路径路径
-          return '/static/katex/katex.min.css';
+          return './static/katex/katex.min.css';
         },
         katex_js: function() {
           // 这是你的katex.js路径
-          return '/static/katex/katex.min.js';
+          return './static/katex/katex.min.js';
         },
       },
       style_list: [
@@ -146,6 +146,9 @@ export default {
       ],
     }
   },
+  created: function() {
+    this.get_post()
+  },
   methods: {
     get_args() {
       var args = document.location.search
@@ -158,10 +161,47 @@ export default {
         }
         return args_obj
       } else {
-        return False
+        return false
       }
     },
     get_post() {
+      var id = this.get_args().id
+      if (id) {
+        this.axios.get('post/get', {
+          params: {
+            id: id
+          }
+        })
+        .then(response => {
+          if (response.data.success) {
+            this.post_title = response.data.data.title
+            this.post_content = response.data.data.content
+            this.$Message.success({
+              background: true,
+              content: '文章获取完成'
+            });
+          } else {
+            this.$Message.warning({
+              background: true,
+              content: '文章获取失败',
+              duration: 5,
+              closable: true,
+            });
+          }
+
+        })
+        .catch(error => {
+          console.log(error)
+            this.$Message.error({
+              background: true,
+              content: '请求异常,请检查网络或后端服务',
+              duration: 5,
+              closable: true,
+            });
+        })
+      } else {
+        return false
+      }
     },
     check_title() {
       this.axios.get('getkey')
@@ -199,17 +239,38 @@ export default {
       document.cookie = 'hash=' + cookie_hash
     },
     save_post() {
-      console.log(this.get_args())
-      var data = {title: this.post_title, content: this.post_content}
-      var form_string = [data.title, data.content].sort().join('_')
+      var data = {title: this.post_title, content: this.post_content, id: this.post_id}
+      var form_string = [data.title, data.content, data.id].sort().join('_')
+
       data.hash = this.get_hash(form_string)
       this.hash_cookie()
-      this.axios.post('/admin/manager/post/save', data)
+      console.log(this.$Message)
+      this.axios.post('./post/save', data)
       .then(response => {
-        console.log(response)
+        if ( response.data.success ) {
+          this.$Message['success']({
+            background: true,
+            content: '保存成功',
+            duration: 5,
+            closable: true,
+          })
+        } else {
+          this.$Message['warning']({
+            background: true,
+            content: '保存失败',
+            duration: 5,
+            closable: true,
+          })
+        }
       })
       .catch(error => {
-        console.log(error)
+        console.error(error)
+        this.$Message['error']({
+          background: true,
+          content: '异常错误,请检查网络或后端服务',
+          duration: 8,
+          closable: true,
+        })
       })
     },
     printTitle() {

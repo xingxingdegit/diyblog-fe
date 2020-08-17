@@ -46,5 +46,4 @@ Vue.component('Input', Input)
 Vue.component('Select', Select)
 Vue.component('Option', Option)
 
-
 import 'view-design/dist/styles/iview.css'

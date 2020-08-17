@@ -6,14 +6,17 @@ module.exports = {
     plugins: [
       new CopyWebpackPlugin({
         patterns: [
-          {from: 'node_modules/mavon-editor/dist/highlightjs', to: 'highlightjs'},
-          {from: 'node_modules/mavon-editor/dist/markdown', to: 'markdown'},
-          {from: 'node_modules/mavon-editor/dist/katex', to: 'katex'},
+          {from: 'node_modules/mavon-editor/dist/highlightjs', to: './static/highlightjs'},
+          {from: 'node_modules/mavon-editor/dist/markdown', to: './static/markdown'},
+          {from: 'node_modules/mavon-editor/dist/katex', to: './static/katex'},
         ],
       }),
     ],
   },
   publicPath: '/admin/manager',
+  outputDir: 'dist',
+  indexPath: 'index.html',
+  assetsDir: 'static',
   devServer: {
     host: '0.0.0.0',
     port: '8080',
