@@ -66,6 +66,7 @@ export default {
       console.log(menuName)
       this.currentComponent = menuName
       document.location.hash = menuName
+      document.location.search = ''
     },
   }
 }
