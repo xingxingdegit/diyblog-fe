@@ -22,6 +22,8 @@ import { Input } from 'view-design'
 import { Select } from 'view-design'
 import { Option } from 'view-design'
 
+import { Table } from 'view-design'
+
 import { Message } from 'view-design'
 
 Vue.component('Button', Button)
@@ -46,6 +48,8 @@ Vue.component('Footer', Footer)
 Vue.component('Input', Input)
 Vue.component('Select', Select)
 Vue.component('Option', Option)
+
+Vue.component('Table', Table)
 
 Vue.prototype.$Message = Message
 

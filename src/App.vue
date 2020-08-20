@@ -45,6 +45,7 @@
 <script>
 import Dashboard from './components/Dashboard.vue'
 import PostCreate from './components/PostCreate.vue'
+import PostShow from './components/PostShow.vue'
 
 export default {
   name: 'app',
@@ -56,6 +57,7 @@ export default {
   components: {
     Dashboard,
     PostCreate,
+    PostShow,
   },
   created: function () {
     var component = document.location.hash || '#Dashboard'

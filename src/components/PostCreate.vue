@@ -165,7 +165,6 @@ export default {
     }
   },
   created: function() {
-    console.log('123')
     this.get_post()
   },
   methods: {
