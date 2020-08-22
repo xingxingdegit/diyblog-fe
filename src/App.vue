@@ -65,7 +65,6 @@ export default {
   },
   methods: {
     menu_decide: function(menuName) {
-      console.log(menuName)
       this.currentComponent = menuName
       document.location.hash = menuName
       document.location.search = ''

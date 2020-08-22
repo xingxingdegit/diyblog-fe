@@ -28,12 +28,29 @@ export default {
     this.get_post_list()
   },
   methods: {
+    auth_invalid(response) {
+      if (response.data.data == 'auth_invalid') {
+        this.$Modal.confirm({
+          title: '是否跳转',
+          content: '登录信息失效，是否跳转登录页面',
+          okText: '跳转',
+          onOk: () => {
+            this.axios.get('get_url?type=login')
+            .then(response => {
+              document.location.pathname = response.data.data
+            })
+          },
+          onCancel: () => {
+            this.$Message.info('取消跳转');
+          }
+        });
+      }
+    },
     get_post_list() {
       var data = {page_num: this.page_num, post_num_per_page: this.post_num_per_page}
       var form_string = [data.page_num, data.post_num_per_page].sort().join('_')
       data.hash = this.get_hash(form_string)
       this.hash_cookie()
-
       this.axios.post('post/get_list', data)
       .then(response => {
         if (response.data.success) {
@@ -43,6 +60,7 @@ export default {
             content: '列表获取完成'
           });
         } else {
+          var state = this.auth_invalid(response)
           this.$Message.warning({
             background: true,
             content: '列表获取失败',

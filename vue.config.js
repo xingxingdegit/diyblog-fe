@@ -13,9 +13,11 @@ module.exports = {
       }),
     ],
   },
+  filenameHashing: false,
+//  publicPath: '/',
   publicPath: '/admin/manager',
   outputDir: 'dist',
-  indexPath: 'index.html',
+  indexPath: 'backmanage.html',
   assetsDir: 'static',
   devServer: {
     host: '0.0.0.0',

@@ -168,6 +168,24 @@ export default {
     this.get_post()
   },
   methods: {
+    auth_invalid(response) {
+      if (response.data.data == 'auth_invalid') {
+        this.$Modal.confirm({
+          title: '是否跳转',
+          content: '<p>登录信息失效，是否跳转登录页面</P><p style="color: red"> 注意：跳转会使编辑的文档消失, 注意保存数据</p>',
+          okText: '跳转',
+          onOk: () => {
+            this.axios.get('get_url?type=login')
+            .then(response => {
+              document.location.pathname = response.data.data
+            })
+          },
+          onCancel: () => {
+            this.$Message.info('取消跳转');
+          }
+        });
+      }
+    },
     simple_check() {
       // 在提交之前做的检测
       var check = new Array()
@@ -228,6 +246,7 @@ export default {
               content: '文档获取完成'
             });
           } else {
+            var state = this.auth_invalid(response)
             this.$Message.warning({
               background: true,
               content: '文档获取失败',
@@ -317,6 +336,7 @@ export default {
               closable: true,
             })
           } else {
+            var state = this.auth_invalid(response)
             this.$Message['warning']({
               background: true,
               content: '保存失败',
