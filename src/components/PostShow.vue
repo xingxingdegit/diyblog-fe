@@ -1,6 +1,26 @@
 <template>
   <div>
-    <Table :columns="post_list_columns" :data="post_list_data"></Table>
+    <header style="margin: 20px 50px;">
+      <p>
+        <Input v-model="search.keyword" style="width:20%" placeholder="关键字" />
+        <Select v-model="search.state" style="width:20%" placeholder="文章状态">
+          <Option value="1">已发布</Option>
+          <Option value="2">草稿</Option>
+          <Option value="3">已删除</Option>
+        </Select>
+        <Select v-model="search.class" style="width: 20%" placeholder="分类">
+          <Option v-for="item in class_list_data" :value="item.id" :key="item.id">{{ item.classname }}</Option>
+        </Select>
+        <Button type="primary" shape="circle" icon="ios-search" style="margin-left: 10px;">查询</Button>
+        <Button type="primary" shape="circle" icon="md-refresh" style="margin-left: 10px;">重置</Button>
+      </p>
+      <Button type="primary" ghost @click="$emit('write-post-page')" style="margin-top: 10px;">写文章</Button>
+    </header>
+    <section>
+      <Table stripe border :columns="post_list_columns" :data="post_list_data"></Table>
+    </section>
+    <footer>
+    </footer>
   </div>
 </template>
 
@@ -16,16 +36,25 @@ export default {
         {title: '状态', key: 'status_str'}, 
         {title: '分类', key: 'classes_str'}, 
         {title: '标签', key: 'tags_str'}, 
+        {title: '访问次数', key: 'visits'}, 
         {title: '发布时间', key: 'create_time'}, 
         {title: '操作', key: 'op'}
       ],
       post_list_data: [],
       page_num: 1,
       post_num_per_page: 10,
+      search: {
+        keyword: '',
+        state: '',
+        class: '',
+      },
+      class_list_data: [],
+
     }
   },
   created: function() {
     this.get_post_list()
+    this.get_class_list()
   },
   methods: {
     auth_invalid(response) {
@@ -78,6 +107,14 @@ export default {
             closable: true,
           });
       })
+    },
+    get_class_list() {
+      this.axios.get('/class/list')
+        .then(response => {
+          if (response.data.success) {
+            this.class_list_data = response.data.data
+          }
+        })
     },
     get_args() {
       var args = document.location.search

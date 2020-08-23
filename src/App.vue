@@ -1,7 +1,7 @@
 <template>
   <div class="layout">
     <Layout>
-      <Header :style="{position: 'static', width: '100%'}" style="z-index: 1000;">
+      <Header style="position: static, width: 100%;z-index: 1000;">
         <Menu mode="horizontal" @on-select="menu_decide" theme="dark" active-name="1">
           <div class="layout-logo">Dashboard</div>
           <div class="layout-nav">
@@ -32,7 +32,7 @@
           </div>
         </Menu>
       </Header>
-      <Content :style="{background: '#f7f7f7', minHeight: '500px'}">
+      <Content style="background: #f7f7f7; minHeight: 500px;padding: 0 50px">
         <component id="content" v-bind:is="currentComponent" />
       </Content>
       <Footer class="layout-footer-center">
@@ -46,7 +46,6 @@
 import Dashboard from './components/Dashboard.vue'
 import PostCreate from './components/PostCreate.vue'
 import PostShow from './components/PostShow.vue'
-
 export default {
   name: 'app',
   data () {
