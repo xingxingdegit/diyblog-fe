@@ -151,8 +151,19 @@ export default {
       ],
     }
   },
+  props: {
+    reset_data: Number
+  },
   watch: {
-    // 监控标题与url的变化，提示是否已经存在
+    reset_data: function() {
+      this.$data.post_title = ''
+      this.$data.post_content = ''
+      this.$data.post_id = 0
+      this.$data.post_url = ''
+      this.$data.edit_url = ''
+      this.$data.code_style = 'github'
+    },
+    // 监控文档的标题与url的变化，提示是否已经存在
     post_title: function() {
       if (this.post_title != this.edit_title) {
         this.check_title()
@@ -211,10 +222,10 @@ export default {
 
     },
     get_args() {
-      var args = document.location.search
+      var args = document.location.hash.split('?')[1]
       var args_obj = new Object()
       if (args) {
-        args = args.slice(1).split('&')
+        args = args.split('&')
         for (var i=0;i<args.length;i++) {
           var key_value = args[i].split('=')
           args_obj[key_value[0]] = key_value[1]
@@ -226,47 +237,49 @@ export default {
     },
     // 用于点击编辑跳转过来的，通过id信息获取文档。
     get_post() {
-      var id = this.get_args().id
-      if (id) {
-        var data = {id: id}
-        data.hash = this.get_hash(id)
-        this.hash_cookie()
-
-        this.axios.post('post/get', data)
-        .then(response => {
-          if (response.data.success) {
-            this.edit_title = response.data.data.title
-            this.edit_url = response.data.data.url
-            this.post_id = id
-            this.post_title = response.data.data.title
-            this.post_content = response.data.data.posts
-            this.code_style = response.data.data.code_style
-            this.$Message.success({
-              background: true,
-              content: '文档获取完成'
-            });
-          } else {
-            var state = this.auth_invalid(response)
-            this.$Message.warning({
-              background: true,
-              content: '文档获取失败',
-              duration: 5,
-              closable: true,
-            });
-          }
-
-        })
-        .catch(error => {
-          console.log(error)
-            this.$Message.error({
-              background: true,
-              content: '请求异常,请检查网络或后端服务',
-              duration: 10,
-              closable: true,
-            });
-        })
-      } else {
-        return false
+      if (document.location.hash.split('?')[0].split('/')[1] == "Edit") {
+        var id = this.get_args().id
+        if (id) {
+          var data = {id: id}
+          data.hash = this.get_hash(id)
+          this.hash_cookie()
+  
+          this.axios.post('post/get', data)
+          .then(response => {
+            if (response.data.success) {
+              this.edit_title = response.data.data.title
+              this.edit_url = response.data.data.url
+              this.post_id = id
+              this.post_title = response.data.data.title
+              this.post_content = response.data.data.posts
+              this.code_style = response.data.data.code_style
+              this.$Message.success({
+                background: true,
+                content: '文档获取完成'
+              });
+            } else {
+              var state = this.auth_invalid(response)
+              this.$Message.warning({
+                background: true,
+                content: '文档获取失败',
+                duration: 5,
+                closable: true,
+              });
+            }
+  
+          })
+          .catch(error => {
+            console.log(error)
+              this.$Message.error({
+                background: true,
+                content: '请求异常,请检查网络或后端服务',
+                duration: 10,
+                closable: true,
+              });
+          })
+        } else {
+          return false
+        }
       }
     },
     check_title() {

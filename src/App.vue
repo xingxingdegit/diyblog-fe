@@ -14,7 +14,7 @@
                     <Icon type="ios-create" />
                     文章
                 </template>
-                <MenuItem name="PostCreate">写文章</MenuItem>
+                <MenuItem name="PostHandler">写文章</MenuItem>
                 <MenuItem name="PostShow">所有文章</MenuItem>
             </Submenu>
             <Submenu name="class">
@@ -33,7 +33,7 @@
         </Menu>
       </Header>
       <Content style="background: #f7f7f7; minHeight: 500px; padding: 0 5%;">
-        <component id="content" v-bind:is="currentComponent" />
+        <component :reset_data="reset_data" id="content" @put_event="put_event" v-bind:is="currentComponent" />
       </Content>
       <Footer class="layout-footer-center">
         Hello World
@@ -44,30 +44,40 @@
 
 <script>
 import Dashboard from './components/Dashboard.vue'
-import PostCreate from './components/PostCreate.vue'
+import PostHandler from './components/PostHandler.vue'
 import PostShow from './components/PostShow.vue'
 export default {
   name: 'app',
   data () {
     return {
       currentComponent: '',
+      reset_data: 0,
     }
   },
   components: {
     Dashboard,
-    PostCreate,
+    PostHandler,
     PostShow,
   },
   created: function () {
-    var component = document.location.hash || '#Dashboard'
+    var component = document.location.hash.split('/')[0] || '#Dashboard'
     this.currentComponent = component.slice(1)
   },
   methods: {
     menu_decide: function(menuName) {
-      this.currentComponent = menuName
       document.location.hash = menuName
-      document.location.search = ''
+      this.currentComponent = menuName
+      this.reset_component(menuName)
     },
+    put_event: function(component_name) {
+      this.currentComponent = component_name
+      this.reset_component(component_name)
+    },
+    reset_component: function(com_name) {
+      if (com_name == this.currentComponent) {
+        this.reset_data += 1
+      }
+    }
   }
 }
 </script>

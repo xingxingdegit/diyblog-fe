@@ -14,10 +14,24 @@
         <Button type="primary" shape="circle" icon="ios-search" @click="search_post_list()" style="margin-left: 10px;">查询</Button>
         <Button type="primary" shape="circle" icon="md-refresh" @click="reset_search()" style="margin-left: 10px;">重置</Button>
       </p>
-      <Button type="primary" ghost @click="$emit('write-post-page')" style="margin-top: 10px;">写文章</Button>
+      <Button type="primary" ghost @click="create_post()" style="margin-top: 10px;">写文章</Button>
     </header>
     <section>
-      <Table stripe border :columns="post_list_columns" :data="post_list_data"></Table>
+      <Table stripe border :columns="post_list_columns" :data="post_list_data">
+        <template slot-scope="{ row }" slot="action">
+            <Button type="primary" size="small" class="post_button" @click="edit_post(row.id)">编辑</Button>
+            <template v-if="row.status != 3">
+              <Button type="primary" size="small" class="post_button" @click="remove_post(row.id)">回收站</Button>
+              <Button v-if="row.status == 1" class="post_button" type="error" size="small" @click="cancel_public(row.id)">取消发布</Button>
+              <Button v-else type="primary" class="post_button" size="small" @click="public_post(row.id)">发布</Button>
+            </template>
+            <template v-else>
+              <Button type="primary" class="post_button" size="small" @click="cancel_del(row.id)">恢复</Button>
+              <Button type="warning" class="post_button" size="small" @click="del_post(row.id)">彻底删除</Button>
+            </template>
+        </template>
+
+      </Table>
     </section>
     <footer>
     </footer>
@@ -38,7 +52,7 @@ export default {
         {title: '标签', key: 'tags_str'}, 
         {title: '访问次数', key: 'visits'}, 
         {title: '发布时间', key: 'create_time'}, 
-        {title: '操作', key: 'op'}
+        {title: '操作', slot: 'action'}
       ],
       post_list_data: [],
       upload_data: {
@@ -74,6 +88,14 @@ export default {
           }
         });
       }
+    },
+    create_post() {
+      document.location.hash = 'PostHandler/Create'
+      this.$emit('put_event', 'PostHandler')
+    },
+    edit_post(post_id) {
+      document.location.hash = 'PostHandler/Edit?id=' + post_id
+      this.$emit('put_event', 'PostHandler')
     },
     search_post_list() {
       this.upload_data.search_on = true
@@ -127,20 +149,6 @@ export default {
           }
         })
     },
-    get_args() {
-      var args = document.location.search
-      var args_obj = new Object()
-      if (args) {
-        args = args.slice(1).split('&')
-        for (var i=0;i<args.length;i++) {
-          var key_value = args[i].split('=')
-          args_obj[key_value[0]] = key_value[1]
-        }
-        return args_obj
-      } else {
-        return false
-      }
-    },
     get_hash(string) {
       var url = document.location.host
       var time_key = Math.floor(Date.now() / 100000)
@@ -167,3 +175,9 @@ export default {
   }
 }
 </script>
+<style scoped>
+  .post_button {
+    margin-left: 2px;
+    margin-right: 2px;
+  }
+</style>
