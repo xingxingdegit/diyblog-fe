@@ -32,7 +32,7 @@
           </div>
         </Menu>
       </Header>
-      <Content style="background: #f7f7f7; minHeight: 500px;padding: 0 50px">
+      <Content style="background: #f7f7f7; minHeight: 500px; padding: 0 5%;">
         <component id="content" v-bind:is="currentComponent" />
       </Content>
       <Footer class="layout-footer-center">

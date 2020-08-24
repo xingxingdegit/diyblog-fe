@@ -2,17 +2,17 @@
   <div>
     <header style="margin: 20px 50px;">
       <p>
-        <Input v-model="search.keyword" style="width:20%" placeholder="关键字" />
-        <Select v-model="search.state" style="width:20%" placeholder="文章状态">
+        <Input v-model="upload_data.search_keyword" style="width:20%" placeholder="关键字" />
+        <Select v-model="upload_data.search_status" style="width:20%" placeholder="文章状态">
           <Option value="1">已发布</Option>
           <Option value="2">草稿</Option>
           <Option value="3">已删除</Option>
         </Select>
-        <Select v-model="search.class" style="width: 20%" placeholder="分类">
+        <Select v-model="upload_data.search_class" style="width: 20%" placeholder="分类">
           <Option v-for="item in class_list_data" :value="item.id" :key="item.id">{{ item.classname }}</Option>
         </Select>
-        <Button type="primary" shape="circle" icon="ios-search" style="margin-left: 10px;">查询</Button>
-        <Button type="primary" shape="circle" icon="md-refresh" style="margin-left: 10px;">重置</Button>
+        <Button type="primary" shape="circle" icon="ios-search" @click="search_post_list()" style="margin-left: 10px;">查询</Button>
+        <Button type="primary" shape="circle" icon="md-refresh" @click="reset_search()" style="margin-left: 10px;">重置</Button>
       </p>
       <Button type="primary" ghost @click="$emit('write-post-page')" style="margin-top: 10px;">写文章</Button>
     </header>
@@ -41,15 +41,15 @@ export default {
         {title: '操作', key: 'op'}
       ],
       post_list_data: [],
-      page_num: 1,
-      post_num_per_page: 10,
-      search: {
-        keyword: '',
-        state: '',
-        class: '',
+      upload_data: {
+        page_num: 1,
+        post_num_per_page: 10,
+        search_on: false,
+        search_keyword: '',
+        search_status: 0,
+        search_class: 0,
       },
       class_list_data: [],
-
     }
   },
   created: function() {
@@ -75,15 +75,26 @@ export default {
         });
       }
     },
+    search_post_list() {
+      this.upload_data.search_on = true
+      this.get_post_list()
+    },
+    reset_search() {
+      this.upload_data.search_on = false
+      this.upload_data.search_keyword = ''
+      this.upload_data.search_status = 0
+      this.upload_data.search_class = 0
+    },
     get_post_list() {
-      var data = {page_num: this.page_num, post_num_per_page: this.post_num_per_page}
-      var form_string = [data.page_num, data.post_num_per_page].sort().join('_')
+      var data = this.upload_data
+      var form_string = Object.values(data).sort().join('_')
       data.hash = this.get_hash(form_string)
       this.hash_cookie()
       this.axios.post('post/get_list', data)
       .then(response => {
         if (response.data.success) {
           this.post_list_data = response.data.data
+          console.log(this.post_list_data)
           this.$Message.success({
             background: true,
             content: '列表获取完成'
