@@ -26,7 +26,7 @@
               <Button v-else type="primary" class="post_button" size="small" @click="public_post(row.id)">发布</Button>
             </template>
             <template v-else>
-              <Button type="primary" class="post_button" size="small" @click="cancel_del(row.id)">恢复</Button>
+              <Button type="primary" class="post_button" size="small" @click="cancel_remove(row.id)">恢复</Button>
               <Button type="warning" class="post_button" size="small" @click="del_post(row.id)">彻底删除</Button>
             </template>
         </template>
@@ -107,25 +107,34 @@ export default {
       this.upload_data.search_status = 0
       this.upload_data.search_class = 0
     },
-    get_post_list() {
-      var data = this.upload_data
+    request_post(data, url, msg) {
+      var msg_data = {
+        list: ['列表获取完成', '列表获取失败'],
+        remove: ['放入回收站成功', '放入回收站失败'],
+        cancel_remove: ['恢复成功', '恢复失败'],
+        del: ['彻底删除成功', '彻底删除失败'],
+      }
       var form_string = Object.values(data).sort().join('_')
       data.hash = this.get_hash(form_string)
       this.hash_cookie()
-      this.axios.post('post/get_list', data)
+      this.axios.post(url, data)
       .then(response => {
         if (response.data.success) {
-          this.post_list_data = response.data.data
-          console.log(this.post_list_data)
           this.$Message.success({
             background: true,
-            content: '列表获取完成'
+            content: msg_data[msg][0],
+            closable: true,
           });
+          if (msg == 'list') {
+            this.post_list_data = response.data.data
+          } else if (msg == 'remove' || msg == 'cancel_remove' || msg == 'del') {
+            this.get_post_list()
+          }
         } else {
           var state = this.auth_invalid(response)
           this.$Message.warning({
             background: true,
-            content: '列表获取失败',
+            content: msg_data[msg][1],
             duration: 5,
             closable: true,
           });
@@ -140,6 +149,22 @@ export default {
             closable: true,
           });
       })
+    },
+    remove_post(post_id) {
+      var data = {post_id: post_id}
+      var return_data = this.request_post(data, 'post/remove', 'remove')
+    },
+    cancel_remove(post_id) {
+      var data = {post_id: post_id}
+      this.request_post(data, 'post/cancel_remove', 'cancel_remove')
+    },
+    del_post(post_id) {
+      var data = {post_id: post_id}
+      this.request_post(data, 'post/delete', 'del')
+    },
+    get_post_list() {
+      var data = this.upload_data
+      this.request_post(data, 'post/get_list', 'list')
     },
     get_class_list() {
       this.axios.get('/class/list')
