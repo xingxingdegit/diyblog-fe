@@ -69,9 +69,25 @@ export default {
   },
   methods: {
     menu_decide: function(menuName) {
-      document.location.hash = menuName
-      this.currentComponent = menuName
-      this.reset_component(menuName)
+      if (this.currentComponent == 'PostHandler') {
+        this.$Modal.confirm({
+          title: '确认离开吗?',
+          content: '<p style="color: red"> 注意：离开会使未保存的文档丢失!</p>',
+          okText: '离开',
+          onOk: () => {
+            document.location.hash = menuName
+            this.currentComponent = menuName
+            this.reset_component(menuName)
+          },
+          onCancel: () => {
+            this.$Message.info('已取消');
+          }
+        });
+      } else {
+        document.location.hash = menuName
+        this.currentComponent = menuName
+        this.reset_component(menuName)
+      }
     },
     put_event: function(component_name) {
       this.currentComponent = component_name
