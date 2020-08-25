@@ -30,8 +30,11 @@
               <Button type="warning" class="post_button" size="small" @click="del_post(row.id)">彻底删除</Button>
             </template>
         </template>
-
       </Table>
+    </section>
+    <section style="text-align: center; margin-top: 30px;">
+      <Page :total="total_post_num" :current="upload_data.page_num" :page-size="upload_data.post_num_per_page" :page-size-opts="page_size_opts"
+            transfer show-total show-sizer @on-change="page_num_change" @on-page-size-change="page_size_change" />
     </section>
     <footer>
     </footer>
@@ -63,7 +66,9 @@ export default {
         search_status: 0,
         search_class: 0,
       },
+      total_post_num: 0,
       class_list_data: [],
+      page_size_opts: [10, 20, 30],
     }
   },
   created: function() {
@@ -71,6 +76,17 @@ export default {
     this.get_class_list()
   },
   methods: {
+    //这边有个小问题，在调整 page_size_change以后，可能page_num_change也会变化， 会导致发起两次请求。
+    page_num_change(page_num) {
+      this.upload_data.page_num = page_num
+      this.get_post_list()
+
+    },
+    page_size_change(page_size_num) {
+      this.upload_data.post_num_per_page = page_size_num
+      this.get_post_list()
+
+    },
     auth_invalid(response) {
       if (response.data.data == 'auth_invalid') {
         this.$Modal.confirm({
@@ -99,6 +115,7 @@ export default {
     },
     search_post_list() {
       this.upload_data.search_on = true
+      this.upload_data.page_num = 1
       this.get_post_list()
     },
     reset_search() {
@@ -110,8 +127,8 @@ export default {
     request_post(data, url, msg) {
       var msg_data = {
         list: ['列表获取完成', '列表获取失败'],
-        remove: ['放入回收站成功', '放入回收站失败'],
-        cancel_remove: ['恢复成功', '恢复失败'],
+        remove: ['放入回收站完成', '放入回收站失败'],
+        cancel_remove: ['文档恢复完成', '文档恢复失败'],
         del: ['彻底删除成功', '彻底删除失败'],
       }
       var form_string = Object.values(data).sort().join('_')
@@ -126,7 +143,8 @@ export default {
             closable: true,
           });
           if (msg == 'list') {
-            this.post_list_data = response.data.data
+            this.post_list_data = response.data.data.list_data
+            this.total_post_num = response.data.data.total_post_num
           } else if (msg == 'remove' || msg == 'cancel_remove' || msg == 'del') {
             this.get_post_list()
           }

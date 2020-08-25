@@ -17,6 +17,10 @@
                 <MenuItem name="PostHandler">写文章</MenuItem>
                 <MenuItem name="PostShow">所有文章</MenuItem>
             </Submenu>
+            <MenuItem name="Attach">
+                <Icon type="md-attach" />
+                附件
+            </MenuItem>
             <Submenu name="class">
                 <template slot="title">
                     <Icon type="md-albums" />
@@ -32,7 +36,7 @@
           </div>
         </Menu>
       </Header>
-      <Content style="background: #f7f7f7; minHeight: 500px; padding: 0 5%;">
+      <Content style="background: #f7f7f7; minHeight: 500px; padding: 0 5%; margin-bottom: 50px;">
         <component :reset_data="reset_data" id="content" @put_event="put_event" v-bind:is="currentComponent" />
       </Content>
       <Footer class="layout-footer-center">

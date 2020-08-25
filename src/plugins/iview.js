@@ -24,8 +24,11 @@ import { Option } from 'view-design'
 
 import { Table } from 'view-design'
 
+import { Page } from 'view-design'
+
 import { Message } from 'view-design'
 import { Modal } from 'view-design'
+
 
 Vue.component('Button', Button)
 Vue.component('Icon', Icon)
@@ -51,6 +54,8 @@ Vue.component('Select', Select)
 Vue.component('Option', Option)
 
 Vue.component('Table', Table)
+
+Vue.component('Page', Page)
 
 Vue.prototype.$Message = Message
 Vue.prototype.$Modal = Modal
