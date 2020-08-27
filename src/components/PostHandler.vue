@@ -13,10 +13,13 @@
     </header>
     <section>
       <mavon-editor 
+        ref=mavon
         id="content" 
         v-model="post_content" 
         :externalLink="externalLink"
         :codeStyle="code_style"
+        @imgAdd="upload_file"
+        @imgDel="img_del"
         />
     </section>
     <footer id="post_op">
@@ -179,6 +182,63 @@ export default {
     this.get_post()
   },
   methods: {
+    upload_file(pos, file) {
+      if (file.size > 10000) {
+        this.$Modal.confirm({
+          title: '是否继续',
+          content: '<p>文件大于10MB, 是否继续上传</P><p style="color: red"> 注意：服务端默认限制是10MB，如没有修改可能会上传失败</p>',
+          okText: '继续',
+          onOk: () => {
+            this.upload_file_second(pos, file)
+          },
+          onCancel: () => {
+            this.$Message.info('取消上传');
+          }
+        });
+      } else {
+        this.upload_file_second(pos, file)
+      }
+    },
+    upload_file_second(pos, file) {
+      var formdata = new FormData()
+      formdata.append(pos, file)
+      this.hash_cookie()
+      this.axios({
+        url: 'upload_file',
+        method: 'POST',
+        data: formdata,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((response) => {
+        if (response.data.success) {
+          this.$Message.success({
+            background: true,
+            content: '上传成功'
+          });
+          // 找到对应pos的位置，替换成url。  pos就是那个数字。
+          this.$refs.mavon.$img2Url(pos, response.data.data[pos])
+        } else {
+          var state = this.auth_invalid(response)
+          this.$Message.warning({
+            background: true,
+            content: '上传失败',
+            duration: 5,
+            closable: true,
+          });
+        }
+      })
+      .catch(error => {
+        console.log(error)
+        this.$Message.error({
+          background: true,
+          content: '请求异常,请检查网络或后端服务',
+          duration: 10,
+          closable: true,
+        });
+      })
+    },
+    img_del(pos) {
+    },
     auth_invalid(response) {
       if (response.data.data == 'auth_invalid') {
         this.$Modal.confirm({
@@ -243,7 +303,6 @@ export default {
           var data = {id: id}
           data.hash = this.get_hash(id)
           this.hash_cookie()
-  
           this.axios.post('post/get', data)
           .then(response => {
             if (response.data.success) {
@@ -304,7 +363,7 @@ export default {
       console.log(this.post_content)
     },
     get_hash(string) {
-      var url = document.location.host
+      var url = document.location.origin
       var time_key = Math.floor(Date.now() / 100000)
       var hmac = crypto.createHmac('sha256', url + '_' + String(time_key)); 
       hmac.update(string)

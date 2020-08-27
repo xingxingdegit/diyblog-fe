@@ -193,7 +193,7 @@ export default {
         })
     },
     get_hash(string) {
-      var url = document.location.host
+      var url = document.location.origin
       var time_key = Math.floor(Date.now() / 100000)
       var hmac = crypto.createHmac('sha256', url + '_' + String(time_key)); 
       hmac.update(string)

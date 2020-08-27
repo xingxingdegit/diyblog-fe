@@ -35,6 +35,9 @@ module.exports = {
       "/static/image": {
           target: "http://127.0.0.1:5000",
       },
+      "/static/upload": {
+          target: "http://127.0.0.1:5000",
+      },
       "/class": {
           target: "http://127.0.0.1:5000",
       }
