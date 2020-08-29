@@ -68,15 +68,15 @@ export default {
       },
       total_post_num: 0,
       class_list_data: [],
-      page_size_opts: [10, 20, 30],
+      page_size_opts: [5, 10, 20, 30],
     }
   },
   created: function() {
+    document.title = '文章列表'
     this.get_post_list()
     this.get_class_list()
   },
   methods: {
-    //这边有个小问题，在调整 page_size_change以后，可能page_num_change也会变化， 会导致发起两次请求。
     page_num_change(page_num) {
       this.upload_data.page_num = page_num
       this.get_post_list()
@@ -84,8 +84,9 @@ export default {
     },
     page_size_change(page_size_num) {
       this.upload_data.post_num_per_page = page_size_num
-      this.get_post_list()
-
+      if (this.upload_data.page_num == 1) {
+        this.get_post_list()
+      }
     },
     auth_invalid(response) {
       if (response.data.data == 'auth_invalid') {

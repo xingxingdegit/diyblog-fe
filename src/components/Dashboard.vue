@@ -22,6 +22,9 @@ export default {
       login_key: 'abc',
     }
   },
+  created: function() {
+    document.title = '仪表板'
+  },
   methods: {
     get_key: function() {
       this.axios.get('getkey')

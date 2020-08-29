@@ -1,9 +1,9 @@
 <template>
   <div id="post_create">
     <header>
-      <Input element-id="post_title" id="title" v-model="post_title" placeholder="标题" style="width: 30%" />
+      <Input element-id="post_title" id="title" v-model="upload_data.post_title" placeholder="标题" style="width: 30%" />
       代码样式:
-      <Select v-model="code_style" style="width:15%">
+      <Select v-model="upload_data.code_style" style="width:15%">
           <Option v-for="(style, index) in style_list" 
             :value="style" 
             :key="index">
@@ -15,36 +15,50 @@
       <mavon-editor 
         ref=mavon
         id="content" 
-        v-model="post_content" 
+        v-model="upload_data.post_content" 
         :externalLink="externalLink"
-        :codeStyle="code_style"
+        :codeStyle="upload_data.code_style"
         @imgAdd="upload_file"
         @imgDel="img_del"
         />
     </section>
     <footer id="post_op">
-      <Button type="info" class="post_button" @click="printContent()">发布</Button>
+      <Button type="info" class="post_button" @click="pub_value.show=true">发布</Button>
       <Button type="success" class="post_button" @click="save_post()">保存草稿</Button>
     </footer>
-
+    <Published
+      :pub_show="pub_value.show"
+      :reset_data="reset_data"
+      @pub-show="pub_show_change"
+     />
+    
   </div>
 </template>
 
 <script>
-
 import crypto from 'crypto'
+import Published from './Published.vue'
 
 export default {
   name: 'post-create',
   data () {
     return {
-      post_title: '',     //上传的文档标题
-      post_content: '',   //文档内容
-      post_id: 0,         //如果是从编辑界面过来的， 函数会为这个填入文档id
-      post_url: '',
+      upload_data: {
+        post_title: '',     //上传的文档标题
+        post_content: '',   //文档内容
+        post_id: 0,         //如果是从编辑界面过来的， 函数会为这个填入文档id
+        post_url: '',
+        post_class: 0,
+        post_tags: '',
+        post_create_time: '',
+        post_update_time: '',
+        code_style: 'github',
+      },
       edit_title: '',    //如果是编辑界面过来的，会存在里面，title与这个一样就不会去检查是否存
       edit_url: '',      // 跟edit_title一样,   这俩也是为了防止保存完以后，修改了，然后又改回来了。
-      code_style: 'github',
+      pub_value: {
+        show: false,
+      },
       externalLink: {
         markdown_css: function() {
           // 这是你的markdown css文件路径
@@ -154,34 +168,40 @@ export default {
       ],
     }
   },
+  components: {
+    Published,
+  },
   props: {
     reset_data: Number
   },
   watch: {
     reset_data: function() {
-      this.$data.post_title = ''
-      this.$data.post_content = ''
-      this.$data.post_id = 0
-      this.$data.post_url = ''
-      this.$data.edit_url = ''
-      this.$data.code_style = 'github'
+      var data = this.$options.data()
+      this.$data.upload_data = data.upload_data
+      this.$data.edit_title = data.edit_title
+      this.$data.edit_url = data.edit_url
+      this.$data.pub_value = data.pub_value
     },
     // 监控文档的标题与url的变化，提示是否已经存在
-    post_title: function() {
-      if (this.post_title != this.edit_title) {
+    'upload_data.post_title': function() {
+      if (this.upload_data.post_title != this.edit_title) {
         this.check_title()
       }
     },
     post_url: function() {
-      if (this.post_url != this.edit_url) {
+      if (this.upload_data.post_url != this.edit_url) {
         this.check_url()
       }
     }
   },
   created: function() {
+    document.title = '编辑文章'
     this.get_post()
   },
   methods: {
+    pub_show_change(show) {
+      this.pub_value.show = show
+    },
     upload_file(pos, file) {
       if (file.size > 10000) {
         this.$Modal.confirm({
@@ -260,7 +280,7 @@ export default {
     simple_check() {
       // 在提交之前做的检测
       var check = new Array()
-      if (! this.post_title) {
+      if (! this.upload_data.post_title.trim()) {
         check.push('标题')
       }
       /*
@@ -308,10 +328,10 @@ export default {
             if (response.data.success) {
               this.edit_title = response.data.data.title
               this.edit_url = response.data.data.url
-              this.post_id = id
-              this.post_title = response.data.data.title
-              this.post_content = response.data.data.posts
-              this.code_style = response.data.data.code_style
+              this.upload_data.post_id = id
+              this.upload_data.post_title = response.data.data.title
+              this.upload_data.post_content = response.data.data.posts
+              this.upload_data.code_style = response.data.data.code_style
               this.$Message.success({
                 background: true,
                 content: '文档获取完成'
@@ -344,12 +364,12 @@ export default {
     check_title() {
       this.axios.get('post/check', {
         params: {
-          title: this.post_title
+          post_title: this.upload_data.post_title.trim()
         }
       })
       .then(response => {
         var title = document.getElementById('post_title')
-        if (response.data.data.title) {
+        if (response.data.data.title || response.data.success == false) {
           title.style.borderColor = 'red'
         } else {
           title.style.borderColor = ''
@@ -360,7 +380,7 @@ export default {
       })
     },
     printContent() {
-      console.log(this.post_content)
+      console.log(this.upload_data.post_content)
     },
     get_hash(string) {
       var url = document.location.origin
@@ -386,9 +406,8 @@ export default {
       document.cookie = 'hash=' + cookie_hash
     },
     save_post() {
-      var data = {title: this.post_title, content: this.post_content, 
-                  id: this.post_id, code_style: this.code_style}
-      var form_string = [data.title, data.content, data.id, data.code_style].sort().join('_')
+      var data = this.upload_data
+      var form_string = Object.values(data).sort().join('_')
 
       data.hash = this.get_hash(form_string)
       this.hash_cookie()
@@ -396,11 +415,11 @@ export default {
         this.axios.post('./post/save', data)
         .then(response => {
           if ( response.data.success ) {
-            if (response.data.data.id && this.post_id == 0) {
-              this.post_id = response.data.data.id
+            if (response.data.data.id && this.upload_data.post_id == 0) {
+              this.upload_data.post_id = response.data.data.id
             }
-            this.edit_title = this.post_title
-            this.edit_content = this.post_content
+            this.edit_title = this.upload_data.post_title
+            this.edit_content = this.upload_data.post_content
             this.$Message['success']({
               background: true,
               content: '保存成功',
@@ -429,7 +448,7 @@ export default {
       }
     },
     printTitle() {
-      console.log(this.post_title)
+      console.log(this.upload_data.post_title)
     }
   }
 }

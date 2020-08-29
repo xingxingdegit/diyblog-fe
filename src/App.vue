@@ -50,6 +50,7 @@
 import Dashboard from './components/Dashboard.vue'
 import PostHandler from './components/PostHandler.vue'
 import PostShow from './components/PostShow.vue'
+
 export default {
   name: 'app',
   data () {
