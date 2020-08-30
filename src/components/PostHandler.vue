@@ -28,15 +28,10 @@
     </footer>
     <Published
       :pub_show="pub_value.show"
-      :reset_data="reset_data"
-      :url="upload_data.post_url"
-      :title="upload_data.post_title"
-      :class_choice="upload_data.post_class"
-      :tags_choice="upload_data.post_tags"
-      :create_datetime="upload_data.post_create_time"
-      :summary="upload_data.post_summary"
-      :reset_publish="this.reset_data"
+      :reset_publish="reset_data"
+      :post_id="upload_data.post_id"
       @pub-show="pub_show_change"
+      @publish-post="publish_post"
      />
     
   </div>
@@ -54,15 +49,9 @@ export default {
         post_title: '',     //上传的文档标题
         post_content: '',   //文档内容
         post_id: 0,         //如果是从编辑界面过来的， 函数会为这个填入文档id
-        post_url: '',
-        post_class: 0,
-        post_tags: [],
-        post_summary: '',
-        post_create_time: 0,
         code_style: 'github',
       },
       edit_title: '',    //如果是编辑界面过来的，会存在里面，title与这个一样就不会去检查是否存
-      edit_url: '',      // 跟edit_title一样,   这俩也是为了防止保存完以后，修改了，然后又改回来了。
       pub_value: {
         show: false,
       },
@@ -186,7 +175,6 @@ export default {
       var data = this.$options.data()
       this.$data.upload_data = data.upload_data
       this.$data.edit_title = data.edit_title
-      this.$data.edit_url = data.edit_url
       this.$data.pub_value = data.pub_value
     },
     // 监控文档的标题与url的变化，提示是否已经存在
@@ -195,11 +183,6 @@ export default {
         this.check_title()
       }
     },
-    post_url: function() {
-      if (this.upload_data.post_url != this.edit_url) {
-        this.check_url()
-      }
-    }
   },
   created: function() {
     document.title = '编辑文章'
@@ -284,11 +267,14 @@ export default {
         });
       }
     },
-    simple_check() {
+    simple_check(data) {
       // 在提交之前做的检测
       var check = new Array()
-      if (! this.upload_data.post_title.trim()) {
+      if (! data.post_title.trim()) {
         check.push('标题')
+      }
+      if (! data.post_url.trim()) {
+        check.push('URL')
       }
       /*
 
@@ -334,15 +320,10 @@ export default {
           .then(response => {
             if (response.data.success) {
               this.edit_title = response.data.data.title
-              this.edit_url = response.data.data.url
-              this.upload_data.post_id = id
               this.upload_data.post_title = response.data.data.title
+              this.upload_data.post_id = response.data.data.id
               this.upload_data.post_content = response.data.data.posts
               this.upload_data.code_style = response.data.data.code_style
-              this.upload_data.post_create_time = response.data.data.create_time
-              this.upload_data.post_class = response.data.data.class
-              this.upload_data.post_tags = response.data.data.tags
-              this.upload_data.post_summary = response.data.data.summary
               this.$Message.success({
                 background: true,
                 content: '文档获取完成'
@@ -390,9 +371,6 @@ export default {
         console.log(error)
       })
     },
-    printContent() {
-      console.log(this.upload_data.post_content)
-    },
     get_hash(string) {
       var url = document.location.origin
       var time_key = Math.floor(Date.now() / 100000)
@@ -422,7 +400,7 @@ export default {
 
       data.hash = this.get_hash(form_string)
       this.hash_cookie()
-      if (this.simple_check()) {
+      if (this.simple_check(data)) {
         this.axios.post('./post/save', data)
         .then(response => {
           if ( response.data.success ) {
@@ -445,6 +423,65 @@ export default {
               duration: 50,
               closable: true,
             })
+          }
+        })
+        .catch(error => {
+          console.error(error)
+          this.$Message['error']({
+            background: true,
+            content: '异常错误,请检查网络或后端服务',
+            duration: 8,
+            closable: true,
+          })
+        })
+      }
+    },
+    publish_post(publish_data) {
+      var data = this.upload_data
+      data.post_url = publish_data.post_url
+      data.post_create_datetime = String(publish_data.post_create_datetime.getTime()).slice(0, 10)
+      data.post_update_datetime = String(publish_data.post_update_datetime.getTime()).slice(0, 10)
+      data.post_class = publish_data.post_class
+      data.post_tags = publish_data.post_tags
+      data.post_summary = publish_data.post_summary || ''
+
+      var form_string = Object.values(data).sort().join('_')
+
+      data.hash = this.get_hash(form_string)
+      this.hash_cookie()
+      if (this.simple_check(data)) {
+        this.axios.post('./post/publish', data)
+        .then(response => {
+          if ( response.data.success ) {
+            if (response.data.data.id && this.upload_data.post_id == 0) {
+              this.upload_data.post_id = response.data.data.id
+            }
+            this.edit_title = this.upload_data.post_title
+            this.edit_content = this.upload_data.post_content
+            this.$Message['success']({
+              background: true,
+              content: '发布成功',
+              duration: 5,
+              closable: true,
+            })
+            this.pub_value.show = false
+          } else {
+            var state = this.auth_invalid(response)
+            if (response.data.data == 'not_change') {
+              this.$Message['info']({
+                background: true,
+                content: '文章内容没有变化',
+                duration: 3,
+                closable: true,
+              })
+            } else {
+              this.$Message['warning']({
+                background: true,
+                content: '发布失败',
+                duration: 50,
+                closable: true,
+              })
+            }
           }
         })
         .catch(error => {
