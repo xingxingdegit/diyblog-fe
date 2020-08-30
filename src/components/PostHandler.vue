@@ -29,6 +29,13 @@
     <Published
       :pub_show="pub_value.show"
       :reset_data="reset_data"
+      :url="upload_data.post_url"
+      :title="upload_data.post_title"
+      :class_choice="upload_data.post_class"
+      :tags_choice="upload_data.post_tags"
+      :create_datetime="upload_data.post_create_time"
+      :summary="upload_data.post_summary"
+      :reset_publish="this.reset_data"
       @pub-show="pub_show_change"
      />
     
@@ -49,9 +56,9 @@ export default {
         post_id: 0,         //如果是从编辑界面过来的， 函数会为这个填入文档id
         post_url: '',
         post_class: 0,
-        post_tags: '',
-        post_create_time: '',
-        post_update_time: '',
+        post_tags: [],
+        post_summary: '',
+        post_create_time: 0,
         code_style: 'github',
       },
       edit_title: '',    //如果是编辑界面过来的，会存在里面，title与这个一样就不会去检查是否存
@@ -332,6 +339,10 @@ export default {
               this.upload_data.post_title = response.data.data.title
               this.upload_data.post_content = response.data.data.posts
               this.upload_data.code_style = response.data.data.code_style
+              this.upload_data.post_create_time = response.data.data.create_time
+              this.upload_data.post_class = response.data.data.class
+              this.upload_data.post_tags = response.data.data.tags
+              this.upload_data.post_summary = response.data.data.summary
               this.$Message.success({
                 background: true,
                 content: '文档获取完成'

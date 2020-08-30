@@ -10,9 +10,9 @@ Vue.config.productionTip = false
 
 Vue.use(mavonEditor)
 
-window.onbeforeunload = function(event) {
-  return '您的数据保存了吗!'
-}
+//window.onbeforeunload = function(event) {
+//  return '您的数据保存了吗!'
+//}
 
 new Vue({
   render: h => h(App),

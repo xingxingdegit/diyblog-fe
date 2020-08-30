@@ -26,6 +26,12 @@ module.exports = {
       "/admin": {
           target: "http://127.0.0.1:5000",
       },
+      "/tags": {
+          target: "http://127.0.0.1:5000",
+      },
+      "/class": {
+          target: "http://127.0.0.1:5000",
+      },
       "/static/js": {
           target: "http://127.0.0.1:5000",
       },

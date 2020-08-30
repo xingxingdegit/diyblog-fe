@@ -29,6 +29,7 @@ import { Page } from 'view-design'
 import { Message } from 'view-design'
 import { Modal } from 'view-design'
 import { Drawer } from 'view-design'
+import { DatePicker } from 'view-design'
 
 
 Vue.component('Button', Button)
@@ -58,6 +59,7 @@ Vue.component('Table', Table)
 
 Vue.component('Page', Page)
 Vue.component('Drawer', Drawer)
+Vue.component('DatePicker', DatePicker)
 
 Vue.prototype.$Message = Message
 Vue.prototype.$Modal = Modal

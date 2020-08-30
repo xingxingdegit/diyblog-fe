@@ -8,7 +8,7 @@
           <Option value="2">草稿</Option>
           <Option value="3">已删除</Option>
         </Select>
-        <Select v-model="upload_data.search_class" style="width: 20%" placeholder="分类">
+        <Select v-model="upload_data.search_class" filterable style="width: 20%" placeholder="分类">
           <Option v-for="item in class_list_data" :value="item.id" :key="item.id">{{ item.classname }}</Option>
         </Select>
         <Button type="primary" shape="circle" icon="ios-search" @click="search_post_list()" style="margin-left: 10px;">查询</Button>
