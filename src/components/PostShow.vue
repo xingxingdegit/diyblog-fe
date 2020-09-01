@@ -38,11 +38,20 @@
     </section>
     <footer>
     </footer>
+    <Published
+      :pub_show="pub_value.show"
+      :reset_publish="reset_data"
+      :post_id="publish_data.post_id"
+      @pub-show="pub_show_change"
+      @publish-post="publish_post"
+     />
+
   </div>
 </template>
 
 <script>
 import crypto from 'crypto'
+import Published from './Published.vue'
 
 export default {
   name: 'post-show',
@@ -66,10 +75,21 @@ export default {
         search_status: 0,
         search_class: 0,
       },
+      pub_value: {
+        show: false,
+      },
+      publish_data: {
+        post_id: 0,
+
+      },
+      reset_data: 0,
       total_post_num: 0,
       class_list_data: [],
       page_size_opts: [5, 10, 20, 30],
     }
+  },
+  components: {
+    Published,
   },
   created: function() {
     document.title = '文章列表'
@@ -77,10 +97,133 @@ export default {
     this.get_class_list()
   },
   methods: {
+    cancel_public(post_id) {
+      var data = {post_id: post_id}
+      var form_string = Object.values(data).sort().join('_')
+      data.hash = this.get_hash(form_string)
+      this.hash_cookie()
+      this.axios.post('post/publish_cancel', data)
+      .then(response => {
+        if ( response.data.success ) {
+          this.$Message['success']({
+            background: true,
+            content: '取消发布成功',
+            duration: 5,
+            closable: true,
+          })
+          this.get_post_list()
+        } else {
+          var state = this.auth_invalid(response)
+          this.$Message['warning']({
+            background: true,
+            content: '取消发布失败',
+            duration: 50,
+            closable: true,
+          })
+        }
+      })
+      .catch(error => {
+        console.error(error)
+        this.$Message['error']({
+          background: true,
+          content: '异常错误,请检查网络或后端服务',
+          duration: 8,
+          closable: true,
+        })
+      })
+    },
+    public_post(post_id) {
+        this.pub_value.show = true
+        this.publish_data.post_id = post_id
+    },
+    publish_post(pub_data) {
+      var data = new Object
+      data.post_id = pub_data.post_id
+      data.post_url = pub_data.post_url
+      data.post_create_datetime = String(pub_data.post_create_datetime.getTime()).slice(0, 10)
+      data.post_update_datetime = String(pub_data.post_update_datetime.getTime()).slice(0, 10)
+      data.post_class = pub_data.post_class
+      data.post_tags = pub_data.post_tags
+      data.post_summary = pub_data.post_summary || ''
+
+      var form_string = Object.values(data).sort().join('_')
+
+      data.hash = this.get_hash(form_string)
+      this.hash_cookie()
+      if (this.simple_check(data)) {
+        this.axios.post('post/publish_state', data)
+        .then(response => {
+          if ( response.data.success ) {
+            this.$Message['success']({
+              background: true,
+              content: '发布成功',
+              duration: 5,
+              closable: true,
+            })
+            this.pub_value.show = false
+            this.reset_data += 1
+            this.get_post_list()
+          } else {
+            var state = this.auth_invalid(response)
+            if (response.data.data == 'not_change') {
+              this.$Message['info']({
+                background: true,
+                content: '文章内容没有变化',
+                duration: 3,
+                closable: true,
+              })
+            } else {
+              this.$Message['warning']({
+                background: true,
+                content: '发布失败',
+                duration: 50,
+                closable: true,
+              })
+            }
+          }
+        })
+        .catch(error => {
+          console.error(error)
+          this.$Message['error']({
+            background: true,
+            content: '异常错误,请检查网络或后端服务',
+            duration: 8,
+            closable: true,
+          })
+        })
+      }
+    },
+    simple_check(data) {
+      // 在提交之前做的检测
+      var check = new Array
+      if (! data.post_url.trim()) {
+        check.push('URL')
+      }
+      /*
+
+      some check
+
+      */
+      if (check.length == 0) {
+        return true
+      } else {
+        this.$Message.info({
+          background: true,
+          content: check.join(', ') + '  不能为空',
+          duration: 5,
+          closable: true,
+        })
+        return false
+      }
+
+    },
+    pub_show_change() {
+      this.pub_value.show = false
+      this.reset_data += 1
+    },
     page_num_change(page_num) {
       this.upload_data.page_num = page_num
       this.get_post_list()
-
     },
     page_size_change(page_size_num) {
       this.upload_data.post_num_per_page = page_size_num

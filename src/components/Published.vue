@@ -48,6 +48,7 @@ export default {
   data () {
     return {
       upload_data: {
+        post_id: 0,
         post_url: '',
         post_create_datetime: new Date(),
         post_update_datetime: new Date(),
@@ -90,10 +91,15 @@ export default {
         .catch(error => {
           console.log(error)
         })
+      } else {
+        var url = document.getElementById('post_url')
+        if (url.style.borderColor == 'red') {
+          url.style.borderColor = ''
+        }
       }
     },
     pub_show: function() {
-      if (this.request_count === 0) {
+      if (this.request_count === 0 && this.pub_show === true) {
         this.get_post()
         this.get_class_list()
         this.get_tags_list()
@@ -160,6 +166,7 @@ export default {
         .then(response => {
           if (response.data.success) {
             this.edit_url = response.data.data.url
+            this.upload_data.post_id = response.data.data.id
             this.upload_data.post_url = response.data.data.url || response.data.data.title
             this.upload_data.post_create_datetime = new Date(Number(response.data.data.create_time + '000'))
             this.upload_data.post_class = response.data.data.class

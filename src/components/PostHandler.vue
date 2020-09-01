@@ -438,6 +438,7 @@ export default {
     },
     publish_post(publish_data) {
       var data = this.upload_data
+      data.post_id = publish_data.post_id
       data.post_url = publish_data.post_url
       data.post_create_datetime = String(publish_data.post_create_datetime.getTime()).slice(0, 10)
       data.post_update_datetime = String(publish_data.post_update_datetime.getTime()).slice(0, 10)
@@ -450,7 +451,7 @@ export default {
       data.hash = this.get_hash(form_string)
       this.hash_cookie()
       if (this.simple_check(data)) {
-        this.axios.post('./post/publish', data)
+        this.axios.post('post/publish', data)
         .then(response => {
           if ( response.data.success ) {
             if (response.data.data.id && this.upload_data.post_id == 0) {
