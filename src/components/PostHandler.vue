@@ -193,7 +193,7 @@ export default {
       this.pub_value.show = show
     },
     upload_file(pos, file) {
-      if (file.size > 10000) {
+      if (file.size > 10000000) {
         this.$Modal.confirm({
           title: '是否继续',
           content: '<p>文件大于10MB, 是否继续上传</P><p style="color: red"> 注意：服务端默认限制是10MB，如没有修改可能会上传失败</p>',
