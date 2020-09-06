@@ -1,0 +1,338 @@
+<template>
+  <div>
+    <header style="margin: 20px 50px;">
+      <p>
+        <Select v-model="upload_data.search_status" style="width:20%" placeholder="文件状态">
+          <Option value="1">正常</Option>
+          <Option value="2">已删除</Option>
+        </Select>
+        <Select v-model="thumbnail_size" style="width:20%" placeholder="缩略图尺寸">
+          <Option value="1">64x64</Option>
+          <Option value="2">128x128</Option>
+          <Option value="3">256x256</Option>
+          <Option value="4">512x512</Option>
+        </Select>
+        <Select v-model="upload_data.search_mimetype" filterable style="width: 20%" placeholder="文件类型">
+          <Option v-for="(name, index) in mimetype_list_data" :value="name" :key="index">{{ name }}</Option>
+        </Select>
+        <Button type="primary" shape="circle" icon="ios-search" @click="search_attach_list()" style="margin-left: 10px;">查询</Button>
+        <Button type="primary" shape="circle" icon="md-refresh" @click="reset_search()" style="margin-left: 10px;">重置</Button>
+      </p>
+      <Button type="primary" ghost @click="create_attach" style="margin-top: 10px;">上传附件</Button>
+    </header>
+    <div>
+      <Modal
+        v-model="create_attach_show"
+        :ok-text="upload_file_setup"
+        title="上传附件"
+        :loading="loading"
+        :before-upload="before_upload"
+        @on-ok="ok_attach"
+        @on-cancel="cancel_attach">
+        <div style="margin-bottom: 30px;margin-left:25px;margin-top: 10px;">
+          <RadioGroup v-model="upload_file_private">
+            <Radio label="1">
+              <Icon type="md-open" />
+              <span>公开的</span>
+            </Radio>
+            <Radio label="2">
+              <Icon type="ios-lock" />
+              <span>私密的</span>
+            </Radio>
+          </RadioGroup>
+          <Tooltip content="公开的: 任何人都可以访问。  私密的: 只有登录以后可以访问。" placement="top" theme="light" max-width="100%">
+            <Icon type="ios-help-circle-outline" />
+          </Tooltip>
+        </div>
+        <Upload 
+          multiple
+          action="/"
+          type="drag"
+          :before-upload="before_upload"
+          >
+          <Button icon="ios-cloud-upload-outline">上传文件</Button>
+        </Upload>
+        <table style="width: 80%; margin-left: 5%;">
+          <tr v-for="(file_data, index) in upload_file_list" :key="index">
+            <td>{{file_data.file.name}}</td>
+            <td>
+              <span style="margin-right: 10px;text-aligin=right" v-if="file_data.loading">
+                <Spin v-if="file_data.success === null" size="small"></Spin>
+                <Icon v-else-if="file_data.success === true" type="ios-checkmark" />
+                <Icon v-else type="ios-close" />
+              </span>
+            </td>
+            <td>
+              <a v-if="file_data.success === true" :href="file_data.url" target="_blank">download url</a>
+            </td>
+          </tr>
+        </table>
+      </Modal>
+    </div>
+    <section>
+      <span v-for="attach in attach_list_data" :key="attach.id">
+        <img v-if="attach.mini_url" :src="attach.mini_url" @click="attach_all_show(attach.filename)" />
+        <img v-else src='' :alt="attach.filename" />
+      </span>
+    </section>
+    <section style="text-align: center; margin-top: 30px;">
+      <Page :total="total_attach_num" :current="upload_data.page_num" :page-size="upload_data.attach_num_per_page" :page-size-opts="page_size_opts"
+            transfer show-total show-sizer @on-change="page_num_change" @on-page-size-change="page_size_change" />
+    </section>
+    <footer>
+    </footer>
+  </div>
+</template>
+
+<script>
+import crypto from 'crypto'
+
+export default {
+  name: 'attach-show',
+  data () {
+    return {
+      upload_data: {
+        page_num: 1,
+        attach_num_per_page: 10,
+        search_on: false,
+        search_mimetype: '',
+        search_status: 0,
+        search_private: 0,
+        size_level: 1,
+      },
+      // 附件列表
+      attach_list_data: [],
+      // 分页
+      total_attach_num: 0,
+      page_size_opts: [5, 10, 20, 30],
+      // mimetype 的select
+      mimetype_list_data: [],
+      // 缩略图
+      thumbnail_size: '1',
+      // 上传附件
+      create_attach_show: false,
+      loading: true,
+      upload_file_list: [],
+      upload_file_setup: '上传',
+      upload_file_private: "1",   //1公开的，  2私密的。
+    }
+  },
+  created: function() {
+    document.title = '文章列表'
+    this.get_attach_list()
+    this.get_mimetype_list()
+  },
+  methods: {
+    attach_all_show(filename) {
+      console.log(filename)
+
+    },
+    create_attach() {
+      this.create_attach_show = true
+      this.upload_file_list = []
+      this.upload_file_setup = '上传'
+      this.loading = true
+    },
+    before_upload(file) {
+      if (file.size > 10000000) {
+        this.$Message.info({
+          background: true,
+          content: '注意: ' + file.name + ' 大于10M, 服务端默认限制为10MB',
+          duration: 10
+        })
+      }
+      var file_data = {file: file, loading: false, success: null, url: ''}
+      this.upload_file_list.push(file_data)
+      return false
+    },
+    ok_attach () {
+      if (this.upload_file_setup == '完成') {
+        return
+      }
+      var length = this.upload_file_list.length
+      for (var index = 0; index < length; index ++) {
+        var file_data = this.upload_file_list[index]
+        file_data.loading = true
+        if (file_data.success != true) {
+          this.upload_file_second(index, file_data, length)
+        }
+      }
+    },
+    cancel_attach () {
+    },
+    upload_file_second(pos, file_data, length) {
+      var formdata = new FormData()
+      var file = file_data.file
+      formdata.append(pos, file)
+      formdata.append('private', this.upload_file_private)
+      this.hash_cookie()
+      this.axios({
+        url: 'upload_file',
+        method: 'POST',
+        data: formdata,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((response) => {
+        if (length - 1 == pos) {
+          this.upload_file_setup = '完成'
+          this.loading = false
+        }
+        if (response.data.success) {
+          this.$Message.success({
+            background: true,
+            content: file.name + ' 上传成功'
+          });
+          file_data.url = response.data.data[pos]
+          file_data.success = true
+        } else {
+          var state = this.auth_invalid(response)
+          this.$Message.warning({
+            background: true,
+            content: file.name + ' 上传失败',
+            duration: 5,
+            closable: true,
+          });
+          file_data.success = false
+        }
+      })
+      .catch(error => {
+        if (length - 1 == pos) {
+          this.upload_file_setup = '完成'
+          this.loading = false
+        }
+        console.log(error)
+        this.$Message.error({
+          background: true,
+          content: '请求异常,请检查网络或后端服务',
+          duration: 10,
+          closable: true,
+        });
+        file_data.success = false
+      })
+    },
+    auth_invalid(response) {
+      if (response.data.data == 'auth_invalid') {
+        this.$Modal.confirm({
+          title: '是否跳转',
+          content: '登录信息失效，是否跳转登录页面',
+          okText: '跳转',
+          onOk: () => {
+            this.axios.get('get_url?type=login')
+            .then(response => {
+              document.location.pathname = response.data.data
+            })
+          },
+          onCancel: () => {
+            this.$Message.info('取消跳转');
+          }
+        });
+      }
+    },
+    page_num_change(page_num) {
+      this.upload_data.page_num = page_num
+      this.get_attach_list()
+    },
+    page_size_change(page_size_num) {
+      this.upload_data.attach_num_per_page = page_size_num
+      if (this.upload_data.page_num == 1) {
+        this.get_attach_list()
+      }
+    },
+    get_attach_list() {
+      var data = this.upload_data
+      this.request_attach(data, 'attach/get_list', 'list')
+    },
+    get_private_file(data) {
+
+    },
+    upload_private_file() {
+
+    },
+    get_mimetype_list() {
+      this.axios.get('attach/mimetype_list')
+        .then(response => {
+          if (response.data.success) {
+            this.mimetype_list_data = response.data.data
+          }
+        })
+    },
+    search_attach_list() {
+      this.upload_data.search_on = true
+      this.upload_data.page_num = 1
+      this.get_attach_list()
+    },
+    request_attach(data, url, msg) {
+      var msg_data = {
+        list: ['列表获取完成', '列表获取失败'],
+        remove: ['放入回收站完成', '放入回收站失败'],
+        cancel_remove: ['附件恢复完成', '附件恢复失败'],
+        del: ['彻底删除成功', '彻底删除失败'],
+      }
+      var form_string = Object.values(data).sort().join('_')
+      data.hash = this.get_hash(form_string)
+      this.hash_cookie()
+      this.axios.post(url, data)
+      .then(response => {
+        if (response.data.success) {
+          this.$Message.success({
+            background: true,
+            content: msg_data[msg][0],
+            closable: true,
+          });
+          if (msg == 'list') {
+            this.attach_list_data = response.data.data.list_data
+            this.total_attach_num = response.data.data.total_attach_num
+          } else if (msg == 'remove' || msg == 'cancel_remove' || msg == 'del') {
+            this.get_attach_list()
+          }
+        } else {
+          var state = this.auth_invalid(response)
+          this.$Message.warning({
+            background: true,
+            content: msg_data[msg][1],
+            duration: 5,
+            closable: true,
+          });
+        }
+      })
+      .catch(error => {
+        console.log(error)
+          this.$Message.error({
+            background: true,
+            content: '请求异常,请检查网络或后端服务',
+            duration: 10,
+            closable: true,
+          });
+      })
+    },
+    get_hash(string) {
+      var url = document.location.origin
+      var time_key = Math.floor(Date.now() / 100000)
+      var hmac = crypto.createHmac('sha256', url + '_' + String(time_key)); 
+      hmac.update(string)
+      var hash = hmac.digest('hex')
+//      var hash = hmac.digest('base64')
+      return hash
+    },
+    hash_cookie() {
+      var cookie = document.cookie.split(';')
+      var cookie_list = new Array()
+      for (var i=0; i < cookie.length; i++) {
+        var cookie_simple = cookie[i].trim().split('=')
+        if (cookie_simple[0] == 'hash') {
+          continue
+        }
+        cookie_list.push(cookie_simple[1])
+      }
+      var cookie_str = cookie_list.sort().join('_')
+      var cookie_hash = this.get_hash(cookie_str)
+      document.cookie = 'hash=' + cookie_hash
+    },
+  }
+}
+</script>
+<style scoped>
+  span {
+    margin: 20px;
+  }
+</style>

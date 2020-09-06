@@ -50,6 +50,7 @@
 import Dashboard from './components/Dashboard.vue'
 import PostHandler from './components/PostHandler.vue'
 import PostShow from './components/PostShow.vue'
+import Attach from './components/Attach.vue'
 
 export default {
   name: 'app',
@@ -63,6 +64,7 @@ export default {
     Dashboard,
     PostHandler,
     PostShow,
+    Attach,
   },
   created: function () {
     var component = document.location.hash.split('/')[0] || '#Dashboard'

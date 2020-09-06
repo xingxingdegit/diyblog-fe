@@ -10,6 +10,9 @@ import { Submenu } from 'view-design'
 import { Radio } from 'view-design'
 import { RadioGroup } from 'view-design'
 
+import { Checkbox } from 'view-design'
+
+
 import { Row } from 'view-design'
 import { Col } from 'view-design'
 
@@ -30,6 +33,9 @@ import { Message } from 'view-design'
 import { Modal } from 'view-design'
 import { Drawer } from 'view-design'
 import { DatePicker } from 'view-design'
+import { Upload } from 'view-design'
+import { Spin } from 'view-design'
+import { Tooltip } from 'view-design'
 
 
 Vue.component('Button', Button)
@@ -42,6 +48,8 @@ Vue.component('Submenu', Submenu)
 
 Vue.component('Radio', Radio)
 Vue.component('RadioGroup', RadioGroup)
+
+Vue.component('Checkbox', Checkbox)
 
 Vue.component('Row', Row)
 Vue.component('Col', Col)
@@ -60,6 +68,12 @@ Vue.component('Table', Table)
 Vue.component('Page', Page)
 Vue.component('Drawer', Drawer)
 Vue.component('DatePicker', DatePicker)
+
+Vue.component('Modal', Modal)
+
+Vue.component('Upload', Upload)
+Vue.component('Spin', Spin)
+Vue.component('Tooltip', Tooltip)
 
 Vue.prototype.$Message = Message
 Vue.prototype.$Modal = Modal
