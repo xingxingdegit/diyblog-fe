@@ -6,7 +6,7 @@
           <Option value="1">正常</Option>
           <Option value="2">已删除</Option>
         </Select>
-        <Select v-model="thumbnail_size" style="width:20%" placeholder="缩略图尺寸">
+        <Select v-model="upload_data.size_level" style="width:20%" placeholder="缩略图尺寸">
           <Option value="1">64x64</Option>
           <Option value="2">128x128</Option>
           <Option value="3">256x256</Option>
@@ -31,13 +31,13 @@
         @on-cancel="cancel_attach">
         <div style="margin-bottom: 30px;margin-left:25px;margin-top: 10px;">
           <RadioGroup v-model="upload_file_private">
-            <Radio label="1">
-              <Icon type="md-open" />
+            <Radio label="1" style="margin-left: 30px;margin-right: 30px;">
               <span>公开的</span>
+              <Icon type="md-open" />
             </Radio>
-            <Radio label="2">
-              <Icon type="ios-lock" />
+            <Radio label="2" style="margin-left: 30px;">
               <span>私密的</span>
+              <Icon type="ios-lock" />
             </Radio>
           </RadioGroup>
           <Tooltip content="公开的: 任何人都可以访问。  私密的: 只有登录以后可以访问。" placement="top" theme="light" max-width="100%">
@@ -69,16 +69,72 @@
         </table>
       </Modal>
     </div>
-    <section>
-      <span v-for="attach in attach_list_data" :key="attach.id">
-        <img v-if="attach.mini_url" :src="attach.mini_url" @click="attach_all_show(attach.filename)" />
-        <img v-else src='' :alt="attach.filename" />
+    <section style="margin: 50px; margin-left: 80px;margin-right: 80px;">
+      <span v-for="(attach, index) in attach_list_data" :key="attach.id" style="cursor: pointer;"  @click="attach_info_manage(index)">
+        <img v-if="attach.mini_url" :src="attach.mini_url" />
+        <span v-else><Icon size="50" type="logo-tux" />文件无法展示</span>
       </span>
     </section>
     <section style="text-align: center; margin-top: 30px;">
       <Page :total="total_attach_num" :current="upload_data.page_num" :page-size="upload_data.attach_num_per_page" :page-size-opts="page_size_opts"
             transfer show-total show-sizer @on-change="page_num_change" @on-page-size-change="page_size_change" />
     </section>
+    <div>
+      <Drawer
+        title="详细信息"
+        v-model="attach_info_show"
+        width="20%"
+        :mask-closable="false"
+      >
+      <div>
+        <p>附件名称: </p>
+        <p>{{attach_info_data.file_name}}</p>
+      </div>
+        <hr />
+        <div>
+        <p>附件类型: </p>
+        <p>{{attach_info_data.mimetype}}</p>
+        </div>
+        <hr />
+        <div>
+        <p>附件大小: </p>
+        <p>{{attach_info_data.file_size}} KB</p>
+        </div>
+        <hr />
+        <div v-if="attach_info_data.is_image == 1">
+        <p>附件尺寸(宽x高): </p>
+        <p>{{attach_info_data.file_size2}}</p>
+        </div>
+        <hr />
+        <div>
+          <p>上传时间: </p>
+          <p>{{attach_info_data.upload_datetime}}</p>
+        </div>
+
+        <hr />
+        <RadioGroup v-model="attach_info_data.private">
+          <Radio label="1" style="margin-left: 30px;margin-right: 30px;">
+            <span>公开的</span>
+            <Icon type="md-open" />
+          </Radio>
+          <Radio label="2" style="margin-left: 30px;">
+            <span>私密的</span>
+            <Icon type="ios-lock" />
+          </Radio>
+        </RadioGroup>
+        <hr />
+        <RadioGroup v-model="attach_info_data.status">
+          <Radio label="1" style="margin-left: 30px;margin-right: 30px;">
+            <span>正常</span>
+            <Icon type="md-attach" />
+          </Radio>
+          <Radio label="2" style="margin-left: 30px;">
+            <span>已失效</span>
+            <Icon type="ios-trash" />
+          </Radio>
+        </RadioGroup>
+      </Drawer>
+    </div>
     <footer>
     </footer>
   </div>
@@ -98,7 +154,8 @@ export default {
         search_mimetype: '',
         search_status: 0,
         search_private: 0,
-        size_level: 1,
+        // 缩略图
+        size_level: "1",
       },
       // 附件列表
       attach_list_data: [],
@@ -107,14 +164,26 @@ export default {
       page_size_opts: [5, 10, 20, 30],
       // mimetype 的select
       mimetype_list_data: [],
-      // 缩略图
-      thumbnail_size: '1',
       // 上传附件
       create_attach_show: false,
       loading: true,
       upload_file_list: [],
       upload_file_setup: '上传',
       upload_file_private: "1",   //1公开的，  2私密的。
+      // 侧边栏
+      attach_info_show: false,
+      attach_info_data: {
+        file_name: '',
+        mimetype: '',
+        file_size: '',
+        file_size2: '',
+        upload_datetime: '',
+        link: '',
+        markdown_link: '',
+        private: '',
+        status: '',
+        is_image: '',
+      },
     }
   },
   created: function() {
@@ -123,8 +192,21 @@ export default {
     this.get_mimetype_list()
   },
   methods: {
-    attach_all_show(filename) {
-      console.log(filename)
+    attach_info_manage(index) {
+      this.$data.attach_info_data = this.$options.data().attach_info_data
+      this.attach_info_show = true
+
+      var file_data = this.attach_list_data[index]
+      this.attach_info_data.file_name = file_data.filename
+      this.attach_info_data.file_name = file_data.filename
+      this.attach_info_data.mimetype = file_data.mimetype
+      this.attach_info_data.file_size = parseInt(file_data.size / 1024)
+      this.attach_info_data.file_size2 = file_data.width + 'x' + file_data.height
+      this.attach_info_data.upload_datetime = new Date(Number(file_data.uptime + '000')).toISOString()
+      this.attach_info_data.link = file_data.url
+      this.attach_info_data.private = String(file_data.private)
+      this.attach_info_data.status = String(file_data.status)
+      this.attach_info_data.is_image = file_data.is_image
 
     },
     create_attach() {
