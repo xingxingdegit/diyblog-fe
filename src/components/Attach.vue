@@ -154,10 +154,15 @@
                   @click="recover_attach(attach_info_data.file_name, attach_info_data.file_id)">
                   恢复
           </Button>
-          <Button type="error"
-                  @click="delete_attach(attach_info_data.file_name, attach_info_data.file_id)">
-                  删除
-          </Button>
+          <Poptip
+            confirm
+            transfer
+            title="确定删除吗?"
+            width="80px"
+            @on-ok="delete_attach(attach_info_data.file_name, attach_info_data.file_id)"
+            @on-cancel="cancel_delete">
+            <Button type="error">删除</Button>
+          </Poptip>
         </div>
       </Drawer>
     </div>
@@ -219,6 +224,8 @@ export default {
     this.get_mimetype_list()
   },
   methods: {
+    cancel_delete() {
+    },
     invalid_attach(file_name, file_id){
       var data = {file_name: file_name, file_id: file_id}
       this.request_attach(data, 'attach/invalid_file', 'invalid')

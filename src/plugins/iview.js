@@ -36,6 +36,7 @@ import { DatePicker } from 'view-design'
 import { Upload } from 'view-design'
 import { Spin } from 'view-design'
 import { Tooltip } from 'view-design'
+import { Poptip } from 'view-design'
 
 
 Vue.component('Button', Button)
@@ -74,6 +75,7 @@ Vue.component('Modal', Modal)
 Vue.component('Upload', Upload)
 Vue.component('Spin', Spin)
 Vue.component('Tooltip', Tooltip)
+Vue.component('Poptip', Poptip)
 
 Vue.prototype.$Message = Message
 Vue.prototype.$Modal = Modal
