@@ -4,7 +4,7 @@
       <p>
         <Select v-model="upload_data.search_status" style="width:20%" placeholder="文件状态">
           <Option value="1">正常</Option>
-          <Option value="2">已删除</Option>
+          <Option value="2">已失效</Option>
         </Select>
         <Select v-model="upload_data.size_level" style="width:20%" placeholder="缩略图尺寸">
           <Option value="1">64x64</Option>
@@ -83,56 +83,82 @@
       <Drawer
         title="详细信息"
         v-model="attach_info_show"
-        width="20%"
-        :mask-closable="false"
+        width="450px"
       >
-      <div>
-        <p>附件名称: </p>
-        <p>{{attach_info_data.file_name}}</p>
-      </div>
-        <hr />
-        <div>
-        <p>附件类型: </p>
-        <p>{{attach_info_data.mimetype}}</p>
+        <a :href="attach_info_data.link" target="_blank"><img :src="attach_info_data.link" width="450px"/></a>
+        <div class="attach_info">
+          <p>附件名称: </p>
+          <p>{{attach_info_data.file_name}}</p>
         </div>
         <hr />
-        <div>
-        <p>附件大小: </p>
-        <p>{{attach_info_data.file_size}} KB</p>
+        <div class="attach_info">
+          <p>附件类型: </p>
+          <p>{{attach_info_data.mimetype}}</p>
         </div>
         <hr />
-        <div v-if="attach_info_data.is_image == 1">
-        <p>附件尺寸(宽x高): </p>
-        <p>{{attach_info_data.file_size2}}</p>
+        <div class="attach_info">
+          <p>附件大小: </p>
+          <p>{{attach_info_data.file_size}} KB</p>
         </div>
         <hr />
-        <div>
+        <div v-if="attach_info_data.is_image == 1" class="attach_info">
+          <p>附件尺寸(宽x高): </p>
+          <p>{{attach_info_data.file_size2}}</p>
+        </div>
+        <hr />
+        <div class="attach_info">
           <p>上传时间: </p>
           <p>{{attach_info_data.upload_datetime}}</p>
         </div>
-
         <hr />
-        <RadioGroup v-model="attach_info_data.private">
-          <Radio label="1" style="margin-left: 30px;margin-right: 30px;">
-            <span>公开的</span>
-            <Icon type="md-open" />
-          </Radio>
-          <Radio label="2" style="margin-left: 30px;">
-            <span>私密的</span>
-            <Icon type="ios-lock" />
-          </Radio>
-        </RadioGroup>
+        <div class="attach_info">
+          <RadioGroup v-model="attach_info_data.private">
+            <Radio label="1" style="margin-left: 20px;margin-right: 30px;" disabled>
+              <span>公开</span>
+              <Icon type="md-open" />
+            </Radio>
+            <Radio label="2" style="margin-left: 30px;" disabled>
+              <span>私密</span>
+              <Icon type="ios-lock" />
+            </Radio>
+          </RadioGroup>
+          <Tooltip content="公开的: 任何人都可以访问。  私密的: 只有登录以后可以访问。" placement="top" theme="light" max-width="100%">
+            <Icon type="ios-help-circle-outline" />
+          </Tooltip>
+        </div>
         <hr />
-        <RadioGroup v-model="attach_info_data.status">
-          <Radio label="1" style="margin-left: 30px;margin-right: 30px;">
-            <span>正常</span>
-            <Icon type="md-attach" />
-          </Radio>
-          <Radio label="2" style="margin-left: 30px;">
-            <span>已失效</span>
-            <Icon type="ios-trash" />
-          </Radio>
-        </RadioGroup>
+        <div class="attach_info">
+          <RadioGroup v-model="attach_info_data.status" disabled>
+            <Radio label="1" style="margin-left: 20px;margin-right: 30px;" disabled>
+              <span>正常</span>
+              <Icon type="md-attach" />
+            </Radio>
+            <Radio label="2" style="margin-left: 30px;" disabled>
+              <span>失效</span>
+              <Icon type="ios-trash" />
+            </Radio>
+          </RadioGroup>
+          <Tooltip content="失效: 通过重命名文件使无法访问。删除: 彻底删除文件。" placement="top" theme="light" max-width="100%">
+            <Icon type="ios-help-circle-outline" />
+          </Tooltip>
+        </div>
+        <hr />
+        <div class="demo-drawer-footer" style="margin-left: 30px;margin: 50px;">
+          <Button type="info" style="margin-right: 35px" @click="attach_info_show=false">取消</Button>
+          <Button v-if="attach_info_data.status == 1" type="warning" 
+                  @click="invalid_attach(attach_info_data.file_name, attach_info_data.file_id)" 
+                  style="margin-right: 35px">
+                  失效
+          </Button>
+          <Button v-else-if="attach_info_data.status == 2" type="success" style="margin-right: 35px"
+                  @click="recover_attach(attach_info_data.file_name, attach_info_data.file_id)">
+                  恢复
+          </Button>
+          <Button type="error"
+                  @click="delete_attach(attach_info_data.file_name, attach_info_data.file_id)">
+                  删除
+          </Button>
+        </div>
       </Drawer>
     </div>
     <footer>
@@ -161,7 +187,7 @@ export default {
       attach_list_data: [],
       // 分页
       total_attach_num: 0,
-      page_size_opts: [5, 10, 20, 30],
+      page_size_opts: [10, 20, 30, 40, 50, 60, 70, 80],
       // mimetype 的select
       mimetype_list_data: [],
       // 上传附件
@@ -183,6 +209,7 @@ export default {
         private: '',
         status: '',
         is_image: '',
+        file_id: '',
       },
     }
   },
@@ -192,6 +219,24 @@ export default {
     this.get_mimetype_list()
   },
   methods: {
+    invalid_attach(file_name, file_id){
+      var data = {file_name: file_name, file_id: file_id}
+      this.request_attach(data, 'attach/invalid_file', 'invalid')
+    },
+    recover_attach(file_name, file_id) {
+      var data = {file_name: file_name, file_id: file_id}
+      this.request_attach(data, 'attach/recover_file', 'recover')
+    },
+    delete_attach(file_name, file_id) {
+      var data = {file_name: file_name, file_id: file_id}
+      this.request_attach(data, 'attach/delete_file', 'delete')
+    },
+    reset_search() {
+      this.upload_data.search_on = false
+      this.upload_data.search_mimetype = ''
+      this.upload_data.search_status = 0
+      this.upload_data.search_private = 0
+    },
     attach_info_manage(index) {
       this.$data.attach_info_data = this.$options.data().attach_info_data
       this.attach_info_show = true
@@ -207,6 +252,7 @@ export default {
       this.attach_info_data.private = String(file_data.private)
       this.attach_info_data.status = String(file_data.status)
       this.attach_info_data.is_image = file_data.is_image
+      this.attach_info_data.file_id = file_data.id
 
     },
     create_attach() {
@@ -346,9 +392,9 @@ export default {
     request_attach(data, url, msg) {
       var msg_data = {
         list: ['列表获取完成', '列表获取失败'],
-        remove: ['放入回收站完成', '放入回收站失败'],
-        cancel_remove: ['附件恢复完成', '附件恢复失败'],
-        del: ['彻底删除成功', '彻底删除失败'],
+        invalid: ['附件失效完成', '附件失效失败'],
+        recover: ['附件恢复完成', '附件恢复失败'],
+        delete: ['彻底删除成功', '彻底删除失败'],
       }
       var form_string = Object.values(data).sort().join('_')
       data.hash = this.get_hash(form_string)
@@ -364,7 +410,17 @@ export default {
           if (msg == 'list') {
             this.attach_list_data = response.data.data.list_data
             this.total_attach_num = response.data.data.total_attach_num
-          } else if (msg == 'remove' || msg == 'cancel_remove' || msg == 'del') {
+          } else if (msg == 'invalid') {
+            this.attach_info_data.status = "2"
+            this.get_attach_list()
+
+          } else if (msg == 'recover') {
+            this.attach_info_data.status = "1"
+            this.get_attach_list()
+
+          } else if (msg == 'delete') {
+            this.$data.attach_info_data = this.$options.data().attach_info_data
+            this.attach_info_show = false
             this.get_attach_list()
           }
         } else {
@@ -416,5 +472,8 @@ export default {
 <style scoped>
   span {
     margin: 20px;
+  }
+  .attach_info {
+    margin-top: 30px;
   }
 </style>

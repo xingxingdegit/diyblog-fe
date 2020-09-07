@@ -64,7 +64,7 @@ export default {
         {title: '标签', key: 'tags_str'}, 
         {title: '访问次数', key: 'visits'}, 
         {title: '发布时间', key: 'create_time'}, 
-        {title: '操作', slot: 'action'}
+        {title: '操作', slot: 'action', width: 250}
       ],
       post_list_data: [],
       upload_data: {
