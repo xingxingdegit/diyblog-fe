@@ -85,30 +85,40 @@
         v-model="attach_info_show"
         width="450px"
       >
-        <a :href="attach_info_data.link" target="_blank"><img :src="attach_info_data.link" width="450px"/></a>
+        <a :href="attach_info_data.link" target="_blank"><img :src="attach_info_data.link" width="100%"/></a>
         <div class="attach_info">
-          <p>附件名称: </p>
+          <p class="attach_inner">附件名称: </p>
           <p>{{attach_info_data.file_name}}</p>
         </div>
         <hr />
         <div class="attach_info">
-          <p>附件类型: </p>
+          <p class="attach_inner">附件类型: </p>
           <p>{{attach_info_data.mimetype}}</p>
         </div>
         <hr />
         <div class="attach_info">
-          <p>附件大小: </p>
+          <p class="attach_inner">附件大小: </p>
           <p>{{attach_info_data.file_size}} KB</p>
         </div>
         <hr />
         <div v-if="attach_info_data.is_image == 1" class="attach_info">
-          <p>附件尺寸(宽x高): </p>
+          <p class="attach_inner">附件尺寸(宽x高): </p>
           <p>{{attach_info_data.file_size2}}</p>
         </div>
         <hr />
         <div class="attach_info">
-          <p>上传时间: </p>
+          <p class="attach_inner">上传时间: </p>
           <p>{{attach_info_data.upload_datetime}}</p>
+        </div>
+        <hr />
+        <div class="attach_info">
+          <p class="attach_inner">普通链接: </p>
+          <p>{{attach_info_data.link}}</p>
+        </div>
+        <hr />
+        <div class="attach_info">
+          <p class="attach_inner">Markdown链接: </p>
+          <p>![{{attach_info_data.file_name}}]({{attach_info_data.link}})</p>
         </div>
         <hr />
         <div class="attach_info">
@@ -254,7 +264,7 @@ export default {
       this.attach_info_data.mimetype = file_data.mimetype
       this.attach_info_data.file_size = parseInt(file_data.size / 1024)
       this.attach_info_data.file_size2 = file_data.width + 'x' + file_data.height
-      this.attach_info_data.upload_datetime = new Date(Number(file_data.uptime + '000')).toISOString()
+      this.attach_info_data.upload_datetime = new Date(Number(file_data.uptime + '000')).toLocaleString()
       this.attach_info_data.link = file_data.url
       this.attach_info_data.private = String(file_data.private)
       this.attach_info_data.status = String(file_data.status)
@@ -282,6 +292,7 @@ export default {
     },
     ok_attach () {
       if (this.upload_file_setup == '完成') {
+        this.get_attach_list()
         return
       }
       var length = this.upload_file_list.length
@@ -481,6 +492,9 @@ export default {
     margin: 20px;
   }
   .attach_info {
-    margin-top: 30px;
+    margin-top: 25px;
+  }
+  .attach_inner {
+    margin-bottom: 3px;
   }
 </style>
