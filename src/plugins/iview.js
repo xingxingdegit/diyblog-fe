@@ -22,6 +22,7 @@ import { Content } from 'view-design'
 import { Footer } from 'view-design'
 
 import { Input } from 'view-design'
+import { InputNumber } from 'view-design'
 import { Select } from 'view-design'
 import { Option } from 'view-design'
 
@@ -37,6 +38,8 @@ import { Upload } from 'view-design'
 import { Spin } from 'view-design'
 import { Tooltip } from 'view-design'
 import { Poptip } from 'view-design'
+
+import { Divider } from 'view-design'
 
 
 Vue.component('Button', Button)
@@ -61,6 +64,7 @@ Vue.component('Content', Content)
 Vue.component('Footer', Footer)
 
 Vue.component('Input', Input)
+Vue.component('InputNumber', InputNumber)
 Vue.component('Select', Select)
 Vue.component('Option', Option)
 
@@ -76,6 +80,9 @@ Vue.component('Upload', Upload)
 Vue.component('Spin', Spin)
 Vue.component('Tooltip', Tooltip)
 Vue.component('Poptip', Poptip)
+
+Vue.component('Divider', Divider)
+
 
 Vue.prototype.$Message = Message
 Vue.prototype.$Modal = Modal

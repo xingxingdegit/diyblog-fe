@@ -11,6 +11,9 @@
           <Option value="2">128x128</Option>
           <Option value="3">256x256</Option>
           <Option value="4">512x512</Option>
+          <Option value="5">1024x1024</Option>
+          <Option value="6">2048x2048</Option>
+          <Option value="7">4096x4096</Option>
         </Select>
         <Select v-model="upload_data.search_mimetype" filterable style="width: 20%" placeholder="文件类型">
           <Option v-for="(name, index) in mimetype_list_data" :value="name" :key="index">{{ name }}</Option>
@@ -25,6 +28,7 @@
         v-model="create_attach_show"
         :ok-text="upload_file_setup"
         title="上传附件"
+        :mask-closable="false"
         :loading="loading"
         :before-upload="before_upload"
         @on-ok="ok_attach"
@@ -190,7 +194,7 @@ export default {
     return {
       upload_data: {
         page_num: 1,
-        attach_num_per_page: 10,
+        attach_num_per_page: 20,
         search_on: false,
         search_mimetype: '',
         search_status: 0,
@@ -229,7 +233,7 @@ export default {
     }
   },
   created: function() {
-    document.title = '文章列表'
+    document.title = '附件管理'
     this.get_attach_list()
     this.get_mimetype_list()
   },

@@ -21,17 +21,17 @@
                 <Icon type="md-attach" />
                 附件
             </MenuItem>
-            <Submenu name="class">
+            <Submenu name="ClassTags">
                 <template slot="title">
                     <Icon type="md-albums" />
                     分类
                 </template>
-                <MenuItem name="class">分类</MenuItem>
-                <MenuItem name="tags">标签</MenuItem>
+                <MenuItem name="Class">分类</MenuItem>
+                <MenuItem name="Tags">标签</MenuItem>
             </Submenu>
             <MenuItem name="Setting">
                 <Icon type="ios-construct" />
-                综合设置
+                设置
             </MenuItem>
           </div>
         </Menu>
@@ -51,6 +51,8 @@ import Dashboard from './components/Dashboard.vue'
 import PostHandler from './components/PostHandler.vue'
 import PostShow from './components/PostShow.vue'
 import Attach from './components/Attach.vue'
+import Setting from './components/Setting.vue'
+import Class from './components/Class.vue'
 
 export default {
   name: 'app',
@@ -65,6 +67,8 @@ export default {
     PostHandler,
     PostShow,
     Attach,
+    Setting,
+    Class,
   },
   created: function () {
     var component = document.location.hash.split('/')[0] || '#Dashboard'

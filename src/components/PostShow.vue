@@ -27,7 +27,15 @@
             </template>
             <template v-else>
               <Button type="primary" class="post_button" size="small" @click="cancel_remove(row.id)">恢复</Button>
-              <Button type="warning" class="post_button" size="small" @click="del_post(row.id)">彻底删除</Button>
+              <Poptip
+                confirm
+                transfer
+                title="确定删除吗?"
+                width="80px"
+                @on-ok="del_post(row.id)"
+                @on-cancel="cancel_delete">
+                  <Button type="warning" class="post_button" size="small">彻底删除</Button>
+              </Poptip>
             </template>
         </template>
       </Table>
@@ -323,6 +331,9 @@ export default {
     del_post(post_id) {
       var data = {post_id: post_id}
       this.request_post(data, 'post/delete', 'del')
+    },
+    cancel_delete() {
+
     },
     get_post_list() {
       var data = this.upload_data
