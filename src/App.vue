@@ -53,6 +53,7 @@ import PostShow from './components/PostShow.vue'
 import Attach from './components/Attach.vue'
 import Setting from './components/Setting.vue'
 import Class from './components/Class.vue'
+import Tags from './components/Tags.vue'
 
 export default {
   name: 'app',
@@ -69,6 +70,7 @@ export default {
     Attach,
     Setting,
     Class,
+    Tags,
   },
   created: function () {
     var component = document.location.hash.split('/')[0] || '#Dashboard'
