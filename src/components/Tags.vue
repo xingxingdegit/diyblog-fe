@@ -157,7 +157,6 @@ export default {
       })
       .then(response => {
         if (response.data.success) {
-          console.log(response.data)
           this.tag_list_data = response.data.data.list_data
           this.total_tag_num = response.data.data.total_tag_num
         }

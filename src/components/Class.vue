@@ -170,7 +170,6 @@ export default {
       })
       .then(response => {
         if (response.data.success) {
-          console.log(response.data)
           this.class_list_data = response.data.data.list_data
           this.total_class_num = response.data.data.total_class_num
         }

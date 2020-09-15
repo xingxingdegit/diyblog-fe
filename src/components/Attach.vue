@@ -30,7 +30,6 @@
         title="上传附件"
         :mask-closable="false"
         :loading="loading"
-        :before-upload="before_upload"
         @on-ok="ok_attach"
         @on-cancel="cancel_attach">
         <div style="margin-bottom: 30px;margin-left:25px;margin-top: 10px;">
@@ -89,7 +88,14 @@
         v-model="attach_info_show"
         width="450px"
       >
-        <a :href="attach_info_data.link" target="_blank"><img :src="attach_info_data.link" width="100%"/></a>
+        <a :href="attach_info_data.link" target="_blank">
+          <span v-if="attach_info_data.is_image == 1">
+            <img :src="attach_info_data.link" width="100%"/>
+          </span>
+          <span v-else>
+            点击下载
+          </span>
+        </a>
         <div class="attach_info">
           <p class="attach_inner">附件名称: </p>
           <p>{{attach_info_data.file_name}}</p>
@@ -105,9 +111,10 @@
           <p>{{attach_info_data.file_size}} KB</p>
         </div>
         <hr />
-        <div v-if="attach_info_data.is_image == 1" class="attach_info">
+        <div class="attach_info">
           <p class="attach_inner">附件尺寸(宽x高): </p>
-          <p>{{attach_info_data.file_size2}}</p>
+          <p v-if="attach_info_data.is_image == 1">{{attach_info_data.file_size2}}</p>
+          <p v-else>无</p>
         </div>
         <hr />
         <div class="attach_info">
@@ -122,7 +129,8 @@
         <hr />
         <div class="attach_info">
           <p class="attach_inner">Markdown链接: </p>
-          <p>![{{attach_info_data.file_name}}]({{attach_info_data.link}})</p>
+          <p v-if="attach_info_data.is_image == 1">![{{attach_info_data.file_name}}]({{attach_info_data.link}})</p>
+          <p v-else>无</p>
         </div>
         <hr />
         <div class="attach_info">
@@ -230,6 +238,7 @@ export default {
         is_image: '',
         file_id: '',
       },
+      upload_file_limit: false,
     }
   },
   created: function() {
@@ -238,6 +247,44 @@ export default {
     this.get_mimetype_list()
   },
   methods: {
+    get_upload_file_limit() {
+      if (this.upload_file_limit == false) {
+        var data = {
+          set_type: 'upload_file',
+        }
+        var form_string = Object.values(data).sort().join('_')
+        data.hash = this.get_hash(form_string)
+        this.hash_cookie()
+        this.axios.post('setting/get', data)
+        .then(response => {
+          if (response.data.success) {
+            var limit_data = response.data.data
+            this.upload_file_limit = {
+              upload_file_size: Number(limit_data.upload_file_size),
+              upload_file_ext: limit_data.upload_file_ext.split(','),
+              upload_file_mime: limit_data.upload_file_mime.split(','),
+            }
+          } else {
+            var state = this.auth_invalid(response)
+            this.$Message.warning({
+              background: true,
+              content: '上传限制信息获取失败,上传失败不会提示原因',
+              duration: 5,
+              closable: true,
+            });
+          }
+        })
+        .catch(error => {
+          console.log(error)
+            this.$Message.error({
+              background: true,
+              content: '请求异常,请检查网络或后端服务',
+              duration: 10,
+              closable: true,
+            });
+        })
+      }
+    },
     cancel_delete() {
     },
     invalid_attach(file_name, file_id){
@@ -281,12 +328,30 @@ export default {
       this.upload_file_list = []
       this.upload_file_setup = '上传'
       this.loading = true
+      this.get_upload_file_limit()
     },
     before_upload(file) {
-      if (file.size > 10000000) {
-        this.$Message.info({
+      if (file.size > this.upload_file_limit.upload_file_size) {
+        this.$Message.warning({
           background: true,
-          content: '注意: ' + file.name + ' 大于10M, 服务端默认限制为10MB',
+          content: file.name + ' ' + file.size + 'Bytes' + ' 大于限制大小: ' + this.upload_file_limit.upload_file_size + ' Bytes',
+          duration: 10
+        })
+      }
+      var filename_list = file.name.split('.')
+      var ext = filename_list[filename_list.length-1]
+      if (this.upload_file_limit.upload_file_ext.indexOf(ext) < 0) {
+        this.$Message.warning({
+          background: true,
+          content: file.name + ' 扩展名: ' + ext + '. 没有在允许的扩展名内',
+          duration: 10
+        })
+      }
+      var first_type = file.type.split('/')[0]
+      if (this.upload_file_limit.upload_file_mime.indexOf(first_type) < 0) {
+        this.$Message.warning({
+          background: true,
+          content: file.name + ' 主MIME类型: ' + first_type + '. 没有在允许的MIME类型内',
           duration: 10
         })
       }
