@@ -9,15 +9,48 @@
           title="发布公告"
           @on-ok="save_notice"
           @on-cancel="cancel">
-            <p>Content of dialog</p>
-            <p>Content of dialog</p>
-            <p>Content of dialog</p>
+            <p>
+              <RadioGroup v-model="notice_data.status">
+                <Radio label="1" style="margin-left: 30px;margin-right: 30px;">
+                  <span>有效</span>
+                </Radio>
+                <Radio label="2" style="margin-left: 30px;">
+                  <span>无效</span>
+                </Radio>
+              </RadioGroup>
+            </p>
+            <p>
+              <Input v-model="notice_data.notice_info" type="textarea" :rows="4" placeholder="<p>公告信息</p>" />
+            </p>
         </Modal>
         <!--
         <span style="margin-left:8px;"><Button>动态信息</Button></span>
         -->
-        <span style="margin-left:8px;"><Button>页脚信息</Button></span>
-        <span style="margin-left:8px;"><Button>修改密码</Button></span>
+        <span style="margin-left:8px;" @click="show_data.footer=true"><Button>页脚信息</Button></span>
+        <Modal
+          v-model="show_data.footer"
+          title="页脚信息"
+          @on-ok="set_update('footer_info')"
+          @on-cancel="cancel">
+            <Input v-model="set_data.footer_info.set_value" type="textarea" :rows="4" placeholder="<p>页脚信息</p>" />
+        </Modal>
+        <span style="margin-left:8px;" @click="show_data.passwd=passwd_data.loading=true;"><Button>修改密码</Button></span>
+        <Modal
+          v-model="show_data.passwd"
+          title="修改密码"
+          :loading="passwd_data.loading"
+          @on-ok="save_passwd"
+          @on-cancel="cancel">
+            <p class="passwd">
+              输入密码：
+              <Input v-model="passwd_data.first" type="password" password placeholder="Enter something..." style="width: 200px" />
+            </p>
+            <p class="passwd">
+              重复输入：
+              <Input v-model="passwd_data.second" type="password" password placeholder="Enter something..." style="width: 200px" />
+            </p>
+            <p class="passwd" style="color:red;">{{passwd_data.info}}</p>
+        </Modal>
       </div>
       <div class="left_part">
         <p>
@@ -150,27 +183,95 @@ export default {
         upload_file_mime: {},
         upload_file_size: {},
         user_timeout: {},
+        footer_info: {},
       },
       show_data: {
         notice: false,
         footer: false,
         passwd: false,
       },
-      notice_data: '',
-      footer_data: '',
+      notice_data: {},
       passwd_data: {
         first: '',
         second: '',
+        loading: true,
+        info: '',
       }
     }
   },
   created: function() {
     document.title = '设置'
     this.get_all_setting()
+    this.get_notice()
+  },
+  watch: {
+    'passwd_data.first': function() {
+      if (this.passwd_data.second == '') {
+        return
+      } else {
+        if (this.passwd_data.second != this.passwd_data.first) {
+          this.passwd_data.info = '密码不匹配'
+        } else {
+          this.passwd_data.info = ''
+        }
+      }
+    },
+    'passwd_data.second': function() {
+      if (this.passwd_data.second != this.passwd_data.first) {
+        this.passwd_data.info = '密码不匹配'
+      } else {
+        this.passwd_data.info = ''
+      }
+    }
   },
   methods: {
     save_notice() {
-
+      var data = this.notice_data
+      this.request_setting(data, 'notice/static/set', 'save_notice')
+    },
+    get_notice() {
+      this.hash_cookie()
+      this.axios.get('notice/static/get')
+      .then(response => {
+        if (response.data.success) {
+          this.notice_data.status = String(response.data.data.status)
+          this.notice_data.notice_info = response.data.data.content
+        } else {
+          var state = this.auth_invalid(response)
+          this.$Message.warning({
+            background: true,
+            content: '获取公告信息失败',
+            duration: 5,
+            closable: true,
+          });
+        }
+      })
+      .catch(error => {
+        console.log(error)
+          this.$Message.error({
+            background: true,
+            content: '请求异常,请检查网络或后端服务',
+            duration: 10,
+            closable: true,
+          });
+      })
+    },
+    save_passwd() {
+      this.passwd_data.loading = false
+      if (this.passwd_data.first != this.passwd_data.second) {
+        this.passwd_data.info = '密码不匹配'
+      } else {
+        if (this.passwd_data.first.trim() == '') {
+          this.passwd_data.info = '密码不能为空'
+        } else {
+          this.passwd_data.info = ''
+          var data = {
+            first: this.passwd_data.first,
+            second: this.passwd_data.second,
+          }
+          this.request_setting(data, 'user/ch_pwd', 'passwd')
+        }
+      }
     },
     cancel() {
 
@@ -273,9 +374,8 @@ export default {
           });
       })
     },
-    request_attach(data, url, msg) {
+    request_setting(data, url, msg) {
       var msg_data = {
-        get_notice: ['公告获取成功', '公告获取失败'],
         save_notice: ['已保存', '保存失败'],
         get_footer: ['页脚信息获取完成', '页脚信息获取失败'],
         save_footer: ['页脚信息已保存', '页脚信息保存失败'],
@@ -292,21 +392,9 @@ export default {
             content: msg_data[msg][0],
             closable: true,
           });
-          if (msg == 'list') {
-            this.attach_list_data = response.data.data.list_data
-            this.total_attach_num = response.data.data.total_attach_num
-          } else if (msg == 'invalid') {
-            this.attach_info_data.status = "2"
-            this.get_attach_list()
-
-          } else if (msg == 'recover') {
-            this.attach_info_data.status = "1"
-            this.get_attach_list()
-
-          } else if (msg == 'delete') {
-            this.$data.attach_info_data = this.$options.data().attach_info_data
-            this.attach_info_show = false
-            this.get_attach_list()
+          if (msg == 'passwd') {
+            this.$data.passwd_data = this.$options.data().passwd_data
+            this.show_data.passwd = false
           }
         } else {
           var state = this.auth_invalid(response)
@@ -410,5 +498,8 @@ export default {
   }
   p {
     margin-bottom: 20px;
+  }
+  .passwd {
+    text-align: center;
   }
 </style>
