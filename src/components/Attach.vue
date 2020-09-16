@@ -21,7 +21,7 @@
         <Button type="primary" shape="circle" icon="ios-search" @click="search_attach_list()" style="margin-left: 10px;">查询</Button>
         <Button type="primary" shape="circle" icon="md-refresh" @click="reset_search()" style="margin-left: 10px;">重置</Button>
       </p>
-      <Button type="primary" ghost @click="create_attach" style="margin-top: 10px;">上传附件</Button>
+      <Button type="primary" ghost @click="create_attach" style="margin-top: 20px;margin-left:10px;">上传附件</Button>
     </header>
     <div>
       <Modal
