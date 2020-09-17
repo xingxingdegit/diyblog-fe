@@ -2,6 +2,8 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 module.exports = {
+  runtimeCompiler: false,
+  productionSourceMap: false,
   configureWebpack: {
     plugins: [
       new CopyWebpackPlugin({

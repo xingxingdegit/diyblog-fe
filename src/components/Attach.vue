@@ -89,7 +89,7 @@
         width="450px"
       >
         <a :href="attach_info_data.link" target="_blank">
-          <span v-if="attach_info_data.is_image == 1">
+          <span v-if="attach_info_data.is_image == 1" style="margin: 0px;">
             <img :src="attach_info_data.link" width="100%"/>
           </span>
           <span v-else>

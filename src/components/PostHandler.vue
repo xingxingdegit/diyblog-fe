@@ -267,14 +267,18 @@ export default {
         });
       }
     },
-    simple_check(data) {
+    simple_check(data, type) {
       // 在提交之前做的检测
       var check = new Array()
-      if (! data.post_title.trim()) {
-        check.push('标题')
+      if (type == 'save' || type == 'public') {
+        if (! data.post_title.trim()) {
+          check.push('标题')
+        }
       }
-      if (! data.post_url.trim()) {
-        check.push('URL')
+      if (type == 'public') {
+        if (! data.post_url.trim()) {
+          check.push('URL')
+        }
       }
       /*
 
@@ -400,7 +404,7 @@ export default {
 
       data.hash = this.get_hash(form_string)
       this.hash_cookie()
-      if (this.simple_check(data)) {
+      if (this.simple_check(data, 'save')) {
         this.axios.post('./post/save', data)
         .then(response => {
           if ( response.data.success ) {
@@ -450,7 +454,7 @@ export default {
 
       data.hash = this.get_hash(form_string)
       this.hash_cookie()
-      if (this.simple_check(data)) {
+      if (this.simple_check(data, 'public')) {
         this.axios.post('post/publish', data)
         .then(response => {
           if ( response.data.success ) {
